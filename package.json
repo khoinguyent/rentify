@@ -1,0 +1,28 @@
+{
+  "name": "rentify",
+  "version": "1.0.0",
+  "private": true,
+  "description": "SaaS property & leasing management platform",
+  "scripts": {
+    "dev": "turbo run dev",
+    "build": "turbo run build",
+    "lint": "turbo run lint",
+    "clean": "turbo run clean",
+    "db:push": "pnpm --filter @rentify/db db:push",
+    "db:migrate": "pnpm --filter @rentify/db db:migrate",
+    "db:studio": "pnpm --filter @rentify/db db:studio",
+    "db:generate": "pnpm --filter @rentify/db db:generate",
+    "type-check": "turbo run type-check",
+    "format": "prettier --write \"**/*.{ts,tsx,md,json}\""
+  },
+  "devDependencies": {
+    "prettier": "^3.2.5",
+    "turbo": "^1.13.0"
+  },
+  "packageManager": "pnpm@8.15.0",
+  "engines": {
+    "node": ">=18.0.0",
+    "pnpm": ">=8.0.0"
+  }
+}
+
