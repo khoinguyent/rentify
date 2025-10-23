@@ -1,6 +1,6 @@
 import { ApiProperty } from '@nestjs/swagger';
 import { IsString, IsNumber, IsOptional, IsEnum, Min } from 'class-validator';
-import { UnitStatus } from '@rentify/db';
+import { UnitStatus } from '@prisma/client';
 
 export class CreateUnitDto {
   @ApiProperty({ example: 'cuid-property-id' })

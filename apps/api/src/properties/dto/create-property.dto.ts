@@ -1,6 +1,6 @@
 import { ApiProperty } from '@nestjs/swagger';
 import { IsString, IsEnum, IsOptional, IsNumber, Min } from 'class-validator';
-import { PropertyType } from '@rentify/db';
+import { PropertyType } from '@prisma/client';
 
 export class CreatePropertyDto {
   @ApiProperty({ example: 'Sunset Apartments' })

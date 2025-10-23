@@ -1,57 +1,64 @@
-# Base stage
-FROM node:18-bullseye-slim AS base
-RUN apt-get update && apt-get install -y ca-certificates && rm -rf /var/lib/apt/lists/*
-RUN corepack enable && corepack prepare pnpm@8.15.0 --activate
-WORKDIR /app
+# ========== STAGE 1: BUILDER ==========
+FROM node:18-bullseye-slim AS builder
 
-# Dependencies stage
-FROM base AS dependencies
-COPY package.json pnpm-workspace.yaml ./
-COPY pnpm-lock.yaml* ./
+# Install system dependencies
+RUN apt-get update && apt-get install -y ca-certificates && rm -rf /var/lib/apt/lists/*
+
+# Setup pnpm
+RUN corepack enable && corepack prepare pnpm@8.15.0 --activate
+
+WORKDIR /repo
+
+# Copy lockfiles first for caching
+COPY pnpm-lock.yaml package.json pnpm-workspace.yaml ./
 COPY apps/api/package.json ./apps/api/
 COPY packages/db/package.json ./packages/db/
 COPY packages/types/package.json ./packages/types/
 COPY packages/utils/package.json ./packages/utils/
-RUN --mount=type=cache,id=pnpm,target=/root/.local/share/pnpm/store \
-    if [ -f pnpm-lock.yaml ]; then pnpm install --frozen-lockfile --ignore-scripts; \
-    else pnpm install --ignore-scripts; fi
 
-# Ensure Prisma Client and engines are generated for the container
-RUN rm -rf /app/packages/db/generated
+# Copy schema files before install to avoid postinstall errors
+COPY packages/db/schema.prisma ./packages/db/
 
-# Development stage
-FROM base AS development
-COPY --from=dependencies /app/node_modules ./node_modules
-COPY --from=dependencies /app/apps/api/node_modules ./apps/api/node_modules
-COPY . .
-WORKDIR /app/apps/api
-EXPOSE 3001
-CMD ["pnpm", "dev"]
+# Install all workspace deps
+RUN pnpm install --no-frozen-lockfile
 
-# Builder stage
-FROM base AS builder
-COPY --from=dependencies /app/node_modules ./node_modules
+# Copy the rest of the repo
 COPY . .
 
-# Generate Prisma client
-WORKDIR /app/packages/db
-RUN pnpm db:generate
+# Generate Prisma client (using repo schema)
+RUN pnpm --filter @rentify/db exec prisma generate
 
-# Build API
-WORKDIR /app/apps/api
-RUN pnpm build
+# Build the API
+RUN pnpm --filter @rentify/api build
 
-# Production stage
-FROM base AS production
-ENV NODE_ENV=production
+# ========== STAGE 2: RUNTIME ==========
+FROM node:18-bullseye-slim AS runtime
 
-COPY --from=builder /app/node_modules ./node_modules
-COPY --from=builder /app/apps/api/dist ./apps/api/dist
-COPY --from=builder /app/apps/api/node_modules ./apps/api/node_modules
-COPY --from=builder /app/packages ./packages
+# Install system dependencies
+RUN apt-get update && apt-get install -y ca-certificates && rm -rf /var/lib/apt/lists/*
 
-WORKDIR /app/apps/api
+WORKDIR /app
+
+# Copy package files
+COPY --from=builder /repo/apps/api/package.json ./package.json
+COPY --from=builder /repo/packages/db/schema.prisma ./schema.prisma
+
+# Copy all production node_modules from builder (this includes all dependencies)
+COPY --from=builder /repo/node_modules ./node_modules
+
+# Copy workspace packages
+COPY --from=builder /repo/packages ./packages
+
+# Copy built application
+COPY --from=builder /repo/apps/api/dist ./dist
+
 EXPOSE 3001
-
 CMD ["node", "dist/main.js"]
 
+# ========== STAGE 3: DEVELOPMENT (for local development) ==========
+FROM builder AS development
+
+WORKDIR /repo/apps/api
+EXPOSE 3001
+
+CMD ["pnpm", "dev"]

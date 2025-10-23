@@ -2,19 +2,36 @@
 
 import { useSession, signOut } from 'next-auth/react';
 import { useRouter } from 'next/navigation';
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { DashboardSummary } from '@/components/dashboard/DashboardSummary';
+import { ExpiringLeases } from '@/components/dashboard/ExpiringLeases';
+import { VacantUnits } from '@/components/dashboard/VacantUnits';
+import { MaintenanceSummary } from '@/components/dashboard/MaintenanceSummary';
+import { RecentActivity } from '@/components/dashboard/RecentActivity';
+import { useDashboardSummary, useDashboardRefresh } from '@/lib/hooks/useDashboard';
 
 export default function DashboardPage() {
   const { data: session, status } = useSession();
   const router = useRouter();
+  const [landlordId, setLandlordId] = useState<string | null>(null);
+  const { refreshAll } = useDashboardRefresh(landlordId || '');
 
   useEffect(() => {
     if (status === 'unauthenticated') {
       router.push('/auth/login');
     }
   }, [status, router]);
+
+  // For now, we'll use the seeded landlord ID
+  // In a real app, this would come from the user's profile or session
+  useEffect(() => {
+    if (session?.user) {
+      // Use the seeded landlord ID from the database
+      setLandlordId('cmh1tt63o00031fzlbvpu8lik');
+    }
+  }, [session]);
 
   if (status === 'loading') {
     return (
@@ -62,67 +79,45 @@ export default function DashboardPage() {
 
       {/* Main Content */}
       <main className="container mx-auto px-4 py-8">
-        <div className="mb-8">
-          <h1 className="text-3xl font-bold text-black mb-2">Dashboard</h1>
-          <p className="text-gray-600">
-            Manage your properties and track your rental business
-          </p>
+        <div className="mb-8 flex justify-between items-center">
+          <div>
+            <h1 className="text-3xl font-bold text-black mb-2">Dashboard</h1>
+            <p className="text-gray-600">
+              Manage your properties and track your rental business
+            </p>
+          </div>
+          <Button onClick={refreshAll} variant="outline">
+            Refresh Data
+          </Button>
         </div>
 
-        {/* Stats Cards */}
-        <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-4 mb-8">
-          <Card>
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">Total Properties</CardTitle>
-              <svg className="h-4 w-4 text-muted-foreground" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" />
-              </svg>
-            </CardHeader>
-            <CardContent>
-              <div className="text-2xl font-bold">12</div>
-              <p className="text-xs text-muted-foreground">+2 from last month</p>
-            </CardContent>
-          </Card>
+        {/* KPI Summary */}
+        {landlordId && <DashboardSummary landlordId={landlordId} />}
 
-          <Card>
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">Active Leases</CardTitle>
-              <svg className="h-4 w-4 text-muted-foreground" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
-              </svg>
-            </CardHeader>
-            <CardContent>
-              <div className="text-2xl font-bold">8</div>
-              <p className="text-xs text-muted-foreground">+1 from last month</p>
-            </CardContent>
-          </Card>
+        {/* Dashboard Sections */}
+        {landlordId && (
+          <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3 mb-8">
+            <ExpiringLeases landlordId={landlordId} />
+            <VacantUnits landlordId={landlordId} />
+            <MaintenanceSummary landlordId={landlordId} />
+          </div>
+        )}
 
-          <Card>
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">Monthly Revenue</CardTitle>
-              <svg className="h-4 w-4 text-muted-foreground" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1" />
-              </svg>
-            </CardHeader>
-            <CardContent>
-              <div className="text-2xl font-bold">$24,000</div>
-              <p className="text-xs text-muted-foreground">+12% from last month</p>
-            </CardContent>
-          </Card>
-
-          <Card>
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">Occupancy Rate</CardTitle>
-              <svg className="h-4 w-4 text-muted-foreground" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
-              </svg>
-            </CardHeader>
-            <CardContent>
-              <div className="text-2xl font-bold">92%</div>
-              <p className="text-xs text-muted-foreground">+3% from last month</p>
-            </CardContent>
-          </Card>
-        </div>
+        {/* Recent Activity */}
+        {landlordId && (
+          <div className="grid gap-6 md:grid-cols-1 lg:grid-cols-2 mb-8">
+            <RecentActivity landlordId={landlordId} />
+            <Card>
+              <CardHeader>
+                <CardTitle>Revenue Trend</CardTitle>
+                <CardDescription>Monthly revenue over the last 6 months</CardDescription>
+              </CardHeader>
+              <CardContent>
+                <p className="text-muted-foreground">Revenue chart will be implemented here</p>
+              </CardContent>
+            </Card>
+          </div>
+        )}
 
         {/* Quick Actions */}
         <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">

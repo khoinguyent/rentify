@@ -1,6 +1,6 @@
 import { ApiProperty } from '@nestjs/swagger';
 import { IsString, IsEnum, IsNumber, IsBoolean, IsOptional, Min } from 'class-validator';
-import { FeeType } from '@rentify/db';
+import { FeeType } from '@prisma/client';
 
 export class CreateLeaseFeeDto {
   @ApiProperty({ example: 'cuid-lease-id' })

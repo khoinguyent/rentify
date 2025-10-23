@@ -10,6 +10,7 @@ import {
   isAfter,
   differenceInMonths,
   format,
+  subMonths,
 } from 'date-fns';
 
 @Injectable()
@@ -44,7 +45,7 @@ export class BillingService {
       },
     });
 
-    const results = [];
+    const results: any[] = [];
 
     for (const lease of leasesToBill) {
       try {
@@ -105,7 +106,7 @@ export class BillingService {
 
     // Calculate billing period
     const { periodStart, periodEnd } = customPeriod
-      ? customPeriod
+      ? { periodStart: customPeriod.start, periodEnd: customPeriod.end }
       : this.calculatePeriodRange(lease, lease.invoices[0]);
 
     // Check for duplicate invoice
@@ -125,7 +126,17 @@ export class BillingService {
     const invoiceNumber = await this.generateInvoiceNumber();
 
     // Calculate invoice items
-    const items = [];
+    const items: Array<{
+      type: 'RENT' | 'FIXED_FEE' | 'VARIABLE_FEE' | 'DISCOUNT';
+      name: string;
+      description: string;
+      quantity: Decimal;
+      unitPrice: Decimal;
+      amount: Decimal;
+      periodStart: Date;
+      periodEnd: Date;
+      feeId?: string;
+    }> = [];
     let subtotal = new Decimal(0);
 
     // 1. Add Rent (multiply by billing cycle months)
@@ -434,6 +445,59 @@ export class BillingService {
     return {
       updated: result.count,
     };
+  }
+
+  /**
+   * Get invoices for a landlord within specified months
+   */
+  async getInvoicesWithinMonths(landlordId: string, months = 6) {
+    const now = new Date();
+    const startDate = subMonths(startOfMonth(now), months - 1);
+
+    return this.db.invoice.findMany({
+      where: {
+        lease: { landlordId },
+        periodStart: { gte: startDate },
+      },
+      include: {
+        lease: {
+          include: {
+            tenant: true,
+            property: true,
+            unit: true,
+          },
+        },
+        items: true,
+      },
+      orderBy: {
+        periodStart: 'desc',
+      },
+    });
+  }
+
+  /**
+   * Get unpaid invoices for a landlord
+   */
+  async getUnpaidInvoicesByLandlord(landlordId: string) {
+    return this.db.invoice.findMany({
+      where: {
+        lease: { landlordId },
+        status: { in: ['UNPAID', 'OVERDUE'] },
+      },
+      include: {
+        lease: {
+          include: {
+            tenant: true,
+            property: true,
+            unit: true,
+          },
+        },
+        items: true,
+      },
+      orderBy: {
+        dueDate: 'asc',
+      },
+    });
   }
 }
 

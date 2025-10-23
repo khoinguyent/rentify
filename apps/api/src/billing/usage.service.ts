@@ -173,7 +173,7 @@ export class UsageService {
       periodMonth: Date;
     }>
   ) {
-    const results = [];
+    const results: any[] = [];
 
     for (const data of usageData) {
       try {

@@ -120,5 +120,49 @@ export class LeasesService {
 
     return { message: 'Lease contract deleted successfully' };
   }
+
+  /**
+   * Get active leases by landlord ID
+   */
+  async getActiveLeasesByLandlord(landlordId: string) {
+    return this.db.leaseContract.findMany({
+      where: { landlordId, status: 'ACTIVE' },
+      include: {
+        property: true,
+        unit: true,
+        landlord: true,
+        tenant: true,
+      },
+    });
+  }
+
+  /**
+   * Get expiring leases for a landlord (next 30 days)
+   */
+  async getExpiringLeasesByLandlord(landlordId: string, daysAhead = 30) {
+    const now = new Date();
+    const until = new Date();
+    until.setDate(now.getDate() + daysAhead);
+
+    return this.db.leaseContract.findMany({
+      where: {
+        landlordId,
+        status: 'ACTIVE',
+        endDate: {
+          gte: now,
+          lte: until,
+        },
+      },
+      include: {
+        property: true,
+        unit: true,
+        landlord: true,
+        tenant: true,
+      },
+      orderBy: {
+        endDate: 'asc',
+      },
+    });
+  }
 }
 

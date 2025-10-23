@@ -102,6 +102,36 @@ async function main() {
       update: {},
       create: { name: 'Pet Friendly', description: 'Pets allowed', icon: '🐕' },
     }),
+    prisma.amenity.upsert({
+      where: { name: 'Hot Water Machine' },
+      update: {},
+      create: { name: 'Hot Water Machine', description: 'Instant hot water dispenser', icon: '♨️' },
+    }),
+    prisma.amenity.upsert({
+      where: { name: 'Air Conditioner' },
+      update: {},
+      create: { name: 'Air Conditioner', description: 'Central air conditioning', icon: '❄️' },
+    }),
+    prisma.amenity.upsert({
+      where: { name: 'Refrigerator' },
+      update: {},
+      create: { name: 'Refrigerator', description: 'Full-size refrigerator included', icon: '🧊' },
+    }),
+    prisma.amenity.upsert({
+      where: { name: 'Television' },
+      update: {},
+      create: { name: 'Television', description: 'Smart TV with streaming capabilities', icon: '📺' },
+    }),
+    prisma.amenity.upsert({
+      where: { name: 'WiFi' },
+      update: {},
+      create: { name: 'WiFi', description: 'High-speed internet included', icon: '📶' },
+    }),
+    prisma.amenity.upsert({
+      where: { name: 'Washing Machine' },
+      update: {},
+      create: { name: 'Washing Machine', description: 'In-unit washer and dryer', icon: '🧺' },
+    }),
   ]);
 
   console.log('✅ Created amenities:', amenities.length);
@@ -117,16 +147,53 @@ async function main() {
       state: 'CA',
       zipCode: '94102',
       description: 'Modern apartments in the heart of the city',
-      totalUnits: 12,
+      totalUnits: 5,
       yearBuilt: 2018,
     },
   });
 
   console.log('✅ Created property:', property.name);
 
-  // Link amenities to property
+  // Create second property
+  const property2 = await prisma.property.create({
+    data: {
+      landlordId: landlordProfile.id,
+      name: 'Downtown Plaza',
+      type: 'APARTMENT',
+      address: '789 Market Street',
+      city: 'San Francisco',
+      state: 'CA',
+      zipCode: '94103',
+      description: 'Luxury apartments with premium amenities',
+      totalUnits: 8,
+      yearBuilt: 2020,
+    },
+  });
+
+  console.log('✅ Created second property:', property2.name);
+
+  // Create third property
+  const property3 = await prisma.property.create({
+    data: {
+      landlordId: landlordProfile.id,
+      name: 'Garden Heights',
+      type: 'HOUSE',
+      address: '321 Pine Street',
+      city: 'San Francisco',
+      state: 'CA',
+      zipCode: '94104',
+      description: 'Charming houses with private gardens',
+      totalUnits: 3,
+      yearBuilt: 2015,
+    },
+  });
+
+  console.log('✅ Created third property:', property3.name);
+
+  // Link amenities to properties
+  // Sunset Apartments - basic amenities
   await Promise.all(
-    amenities.slice(0, 3).map((amenity) =>
+    amenities.slice(0, 4).map((amenity) =>
       prisma.propertyAmenity.create({
         data: {
           propertyId: property.id,
@@ -136,8 +203,48 @@ async function main() {
     )
   );
 
-  // Create units
-  const units = await Promise.all([
+  // Downtown Plaza - premium amenities
+  await Promise.all(
+    amenities.slice(4, 10).map((amenity) =>
+      prisma.propertyAmenity.create({
+        data: {
+          propertyId: property2.id,
+          amenityId: amenity.id,
+        },
+      })
+    )
+  );
+
+  // Garden Heights - mixed amenities
+  await Promise.all([
+    prisma.propertyAmenity.create({
+      data: {
+        propertyId: property3.id,
+        amenityId: amenities[0].id, // Parking
+      },
+    }),
+    prisma.propertyAmenity.create({
+      data: {
+        propertyId: property3.id,
+        amenityId: amenities[3].id, // Pet Friendly
+      },
+    }),
+    prisma.propertyAmenity.create({
+      data: {
+        propertyId: property3.id,
+        amenityId: amenities[5].id, // Air Conditioner
+      },
+    }),
+    prisma.propertyAmenity.create({
+      data: {
+        propertyId: property3.id,
+        amenityId: amenities[6].id, // Refrigerator
+      },
+    }),
+  ]);
+
+  // Create units for Sunset Apartments (5 units)
+  const sunsetUnits = await Promise.all([
     prisma.unit.create({
       data: {
         propertyId: property.id,
@@ -154,6 +261,19 @@ async function main() {
     prisma.unit.create({
       data: {
         propertyId: property.id,
+        name: 'Unit 102',
+        floor: 1,
+        rentAmount: 2200,
+        sizeM2: 65,
+        bedrooms: 1,
+        bathrooms: 1,
+        status: 'AVAILABLE',
+        description: 'Cozy 1-bedroom apartment',
+      },
+    }),
+    prisma.unit.create({
+      data: {
+        propertyId: property.id,
         name: 'Unit 201',
         floor: 2,
         rentAmount: 3000,
@@ -164,15 +284,193 @@ async function main() {
         description: 'Luxury 3-bedroom apartment with balcony',
       },
     }),
+    prisma.unit.create({
+      data: {
+        propertyId: property.id,
+        name: 'Unit 202',
+        floor: 2,
+        rentAmount: 2800,
+        sizeM2: 85,
+        bedrooms: 2,
+        bathrooms: 2,
+        status: 'AVAILABLE',
+        description: 'Modern 2-bedroom apartment',
+      },
+    }),
+    prisma.unit.create({
+      data: {
+        propertyId: property.id,
+        name: 'Unit 301',
+        floor: 3,
+        rentAmount: 3200,
+        sizeM2: 100,
+        bedrooms: 3,
+        bathrooms: 2,
+        status: 'AVAILABLE',
+        description: 'Penthouse-style 3-bedroom apartment',
+      },
+    }),
   ]);
 
-  console.log('✅ Created units:', units.length);
+  // Create units for Downtown Plaza (8 units)
+  const downtownUnits = await Promise.all([
+    prisma.unit.create({
+      data: {
+        propertyId: property2.id,
+        name: 'Unit A101',
+        floor: 1,
+        rentAmount: 3500,
+        sizeM2: 85,
+        bedrooms: 2,
+        bathrooms: 2,
+        status: 'OCCUPIED',
+        description: 'Premium 2-bedroom with smart home features',
+      },
+    }),
+    prisma.unit.create({
+      data: {
+        propertyId: property2.id,
+        name: 'Unit A102',
+        floor: 1,
+        rentAmount: 3200,
+        sizeM2: 75,
+        bedrooms: 2,
+        bathrooms: 1,
+        status: 'AVAILABLE',
+        description: 'Modern 2-bedroom apartment',
+      },
+    }),
+    prisma.unit.create({
+      data: {
+        propertyId: property2.id,
+        name: 'Unit A201',
+        floor: 2,
+        rentAmount: 4000,
+        sizeM2: 110,
+        bedrooms: 3,
+        bathrooms: 2,
+        status: 'OCCUPIED',
+        description: 'Luxury 3-bedroom with premium amenities',
+      },
+    }),
+    prisma.unit.create({
+      data: {
+        propertyId: property2.id,
+        name: 'Unit A202',
+        floor: 2,
+        rentAmount: 3800,
+        sizeM2: 95,
+        bedrooms: 3,
+        bathrooms: 2,
+        status: 'AVAILABLE',
+        description: 'Spacious 3-bedroom apartment',
+      },
+    }),
+    prisma.unit.create({
+      data: {
+        propertyId: property2.id,
+        name: 'Unit A301',
+        floor: 3,
+        rentAmount: 4500,
+        sizeM2: 120,
+        bedrooms: 3,
+        bathrooms: 3,
+        status: 'AVAILABLE',
+        description: 'Penthouse 3-bedroom with panoramic views',
+      },
+    }),
+    prisma.unit.create({
+      data: {
+        propertyId: property2.id,
+        name: 'Unit A302',
+        floor: 3,
+        rentAmount: 4200,
+        sizeM2: 105,
+        bedrooms: 3,
+        bathrooms: 2,
+        status: 'AVAILABLE',
+        description: 'High-end 3-bedroom apartment',
+      },
+    }),
+    prisma.unit.create({
+      data: {
+        propertyId: property2.id,
+        name: 'Unit A401',
+        floor: 4,
+        rentAmount: 4800,
+        sizeM2: 130,
+        bedrooms: 4,
+        bathrooms: 3,
+        status: 'AVAILABLE',
+        description: 'Executive 4-bedroom apartment',
+      },
+    }),
+    prisma.unit.create({
+      data: {
+        propertyId: property2.id,
+        name: 'Unit A402',
+        floor: 4,
+        rentAmount: 4600,
+        sizeM2: 125,
+        bedrooms: 4,
+        bathrooms: 3,
+        status: 'AVAILABLE',
+        description: 'Premium 4-bedroom apartment',
+      },
+    }),
+  ]);
+
+  // Create units for Garden Heights (3 units)
+  const gardenUnits = await Promise.all([
+    prisma.unit.create({
+      data: {
+        propertyId: property3.id,
+        name: 'House 1',
+        floor: 1,
+        rentAmount: 2800,
+        sizeM2: 120,
+        bedrooms: 3,
+        bathrooms: 2,
+        status: 'OCCUPIED',
+        description: 'Charming 3-bedroom house with garden',
+      },
+    }),
+    prisma.unit.create({
+      data: {
+        propertyId: property3.id,
+        name: 'House 2',
+        floor: 1,
+        rentAmount: 3200,
+        sizeM2: 140,
+        bedrooms: 4,
+        bathrooms: 3,
+        status: 'AVAILABLE',
+        description: 'Spacious 4-bedroom house with private yard',
+      },
+    }),
+    prisma.unit.create({
+      data: {
+        propertyId: property3.id,
+        name: 'House 3',
+        floor: 1,
+        rentAmount: 3000,
+        sizeM2: 130,
+        bedrooms: 3,
+        bathrooms: 2,
+        status: 'AVAILABLE',
+        description: 'Modern 3-bedroom house with deck',
+      },
+    }),
+  ]);
+
+  const allUnits = [...sunsetUnits, ...downtownUnits, ...gardenUnits];
+  console.log('✅ Created units:', allUnits.length);
 
   // Create a lease contract with billing configuration
   const lease = await prisma.leaseContract.create({
     data: {
       propertyId: property.id,
-      unitId: units[1].id,
+      unitId: sunsetUnits[2].id, // Unit 201 (occupied unit)
       landlordId: landlordProfile.id,
       tenantId: tenantProfile.id,
       startDate: new Date('2024-01-01'),
@@ -300,7 +598,7 @@ async function main() {
   const invoice1 = await prisma.invoice.create({
     data: {
       leaseId: lease.id,
-      invoiceNumber: 'INV-202401-0001',
+      invoiceNumber: `INV-${Date.now()}-001`,
       periodStart: new Date('2024-01-01'),
       periodEnd: new Date('2024-01-31'),
       issueDate: new Date('2024-01-01'),
@@ -392,14 +690,14 @@ async function main() {
   // Create a second lease with quarterly billing
   const quarterlyLease = await prisma.leaseContract.create({
     data: {
-      propertyId: property.id,
-      unitId: units[0].id,
+      propertyId: property2.id,
+      unitId: downtownUnits[0].id, // Unit A101 (occupied unit)
       landlordId: landlordProfile.id,
       tenantId: tenantProfile.id,
       startDate: new Date('2024-01-01'),
       endDate: new Date('2024-12-31'),
-      rentAmount: 2500,
-      depositAmount: 5000,
+      rentAmount: 3500,
+      depositAmount: 7000,
       status: 'ACTIVE',
       billingDay: 1,
       billingCycleMonths: 3, // Quarterly billing

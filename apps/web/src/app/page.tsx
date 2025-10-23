@@ -1,5 +1,6 @@
 import Link from 'next/link';
 import { Button } from '@/components/ui/button';
+import { Logo } from '@/components/Logo';
 
 export default function Home() {
   return (
@@ -7,12 +8,7 @@ export default function Home() {
       {/* Header */}
       <header className="border-b border-gray-200">
         <div className="container mx-auto flex h-16 items-center justify-between px-4">
-          <Link href="/" className="flex items-center gap-2">
-            <div className="h-8 w-8 rounded-lg bg-primary flex items-center justify-center">
-              <img src="/home.svg" alt="Home" className="h-5 w-5 object-contain" />
-            </div>
-            <span className="text-xl font-bold text-primary">Rentify</span>
-          </Link>
+          <Logo href="/" />
           
           <nav className="flex items-center gap-6">
             <Link href="/landlords" className="text-gray-600 hover:text-gray-900 font-medium">

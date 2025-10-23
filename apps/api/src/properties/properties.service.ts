@@ -108,5 +108,33 @@ export class PropertiesService {
 
     return { message: 'Property deleted successfully' };
   }
+
+  /**
+   * Get properties by landlord ID for dashboard
+   */
+  async getPropertiesByLandlord(landlordId: string) {
+    return this.db.property.findMany({
+      where: { landlordId },
+      include: {
+        units: true,
+        landlord: true,
+      },
+    });
+  }
+
+  /**
+   * Get vacant units for a landlord
+   */
+  async getVacantUnitsByLandlord(landlordId: string) {
+    return this.db.unit.findMany({
+      where: {
+        property: { landlordId },
+        status: 'AVAILABLE',
+      },
+      include: {
+        property: true,
+      },
+    });
+  }
 }
 
