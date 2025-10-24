@@ -1,4 +1,4 @@
-const { PrismaClient, ...prismaExports } = require('./generated/client');
+const { PrismaClient, ...prismaExports } = require('@prisma/client');
 
 declare global {
   // eslint-disable-next-line no-var

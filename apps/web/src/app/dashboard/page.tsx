@@ -1,10 +1,11 @@
 'use client';
 
-import { useSession, signOut } from 'next-auth/react';
+import { useSession } from 'next-auth/react';
 import { useRouter } from 'next/navigation';
 import { useEffect, useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { Sidebar } from '@/components/Sidebar';
 import { DashboardSummary } from '@/components/dashboard/DashboardSummary';
 import { ExpiringLeases } from '@/components/dashboard/ExpiringLeases';
 import { VacantUnits } from '@/components/dashboard/VacantUnits';
@@ -49,46 +50,30 @@ export default function DashboardPage() {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50">
-      {/* Header */}
-      <header className="bg-white border-b border-gray-200">
-        <div className="container mx-auto flex h-16 items-center justify-between px-4">
-          <div className="flex items-center gap-2">
-            <div className="h-8 w-8 rounded-lg bg-primary flex items-center justify-center">
-              <svg className="h-5 w-5 text-white" fill="currentColor" viewBox="0 0 20 20">
-                <path d="M10.707 2.293a1 1 0 00-1.414 0l-7 7a1 1 0 001.414 1.414L4 10.414V17a1 1 0 001 1h2a1 1 0 001-1v-2a1 1 0 011-1h2a1 1 0 011 1v2a1 1 0 001 1h2a1 1 0 001-1v-6.586l.293.293a1 1 0 001.414-1.414l-7-7z" />
-              </svg>
-            </div>
-            <span className="text-xl font-bold text-black">Rentify</span>
-          </div>
-          
-          <div className="flex items-center gap-4">
-            <span className="text-sm text-gray-600">
-              Welcome, {session.user?.name}
-            </span>
-            <Button
-              variant="outline"
-              onClick={() => signOut({ callbackUrl: '/' })}
-              className="text-gray-700"
-            >
-              Sign Out
-            </Button>
-          </div>
-        </div>
-      </header>
+    <div className="min-h-screen bg-gray-50 flex">
+      {/* Sidebar */}
+      <Sidebar />
 
       {/* Main Content */}
-      <main className="container mx-auto px-4 py-8">
-        <div className="mb-8 flex justify-between items-center">
+      <div className="flex-1 ml-64">
+        {/* Header */}
+        <header className="bg-white border-b border-gray-200 h-16 flex items-center justify-between px-6 sticky top-0 z-30">
           <div>
-            <h1 className="text-3xl font-bold text-black mb-2">Dashboard</h1>
-            <p className="text-gray-600">
-              Manage your properties and track your rental business
-            </p>
+            <h1 className="text-2xl font-bold text-black">Dashboard</h1>
           </div>
-          <Button onClick={refreshAll} variant="outline">
-            Refresh Data
-          </Button>
+          <div className="flex items-center gap-4">
+            <Button onClick={refreshAll} variant="outline" size="sm">
+              Refresh Data
+            </Button>
+          </div>
+        </header>
+
+        {/* Dashboard Content */}
+        <main className="p-6">
+        <div className="mb-8">
+          <p className="text-gray-600">
+            Manage your properties and track your rental business
+          </p>
         </div>
 
         {/* KPI Summary */}
@@ -172,7 +157,8 @@ export default function DashboardPage() {
             </CardContent>
           </Card>
         </div>
-      </main>
+        </main>
+      </div>
     </div>
   );
 }

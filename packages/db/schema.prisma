@@ -19,13 +19,36 @@ enum UserRole {
 }
 
 enum PropertyType {
+  STUDIO
+  ONE_BEDROOM
+  TWO_BEDROOM
+  THREE_BEDROOM
+  DUPLEX
+  VILLA
+  TOWNHOUSE
+  CONDO
   APARTMENT
   HOUSE
-  CONDO
+  PENTHOUSE
+  LOFT
+  SERVICED_APARTMENT
   COMMERCIAL
   OFFICE
   WAREHOUSE
   LAND
+}
+
+enum Furnishing {
+  FURNISHED
+  SEMI_FURNISHED
+  UNFURNISHED
+}
+
+enum PropertyStatus {
+  AVAILABLE
+  RENTED
+  UNDER_MAINTENANCE
+  COMING_SOON
 }
 
 enum UnitStatus {
@@ -77,17 +100,17 @@ enum InvoiceItemType {
 // Core Models
 
 model User {
-  id           String    @id @default(cuid())
-  email        String    @unique
-  passwordHash String?
-  firstName    String
-  lastName     String
-  role         UserRole  @default(TENANT)
-  isActive     Boolean   @default(true)
+  id            String    @id @default(cuid())
+  email         String    @unique
+  passwordHash  String?
+  firstName     String
+  lastName      String
+  role          UserRole  @default(TENANT)
+  isActive      Boolean   @default(true)
   emailVerified DateTime?
-  
-  createdAt    DateTime  @default(now())
-  updatedAt    DateTime  @updatedAt
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 
   // Relations
   landlordProfile LandlordProfile?
@@ -129,105 +152,135 @@ model Session {
 }
 
 model LandlordProfile {
-  id          String   @id @default(cuid())
-  userId      String   @unique
-  name        String
-  phone       String?
-  address     String?
-  taxId       String?  @unique
-  
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
+  id      String  @id @default(cuid())
+  userId  String  @unique
+  name    String
+  phone   String?
+  address String?
+  taxId   String? @unique
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 
   // Relations
-  user        User            @relation(fields: [userId], references: [id], onDelete: Cascade)
-  properties  Property[]
-  leases      LeaseContract[]
+  user       User            @relation(fields: [userId], references: [id], onDelete: Cascade)
+  properties Property[]
+  leases     LeaseContract[]
 
   @@map("landlord_profiles")
 }
 
 model TenantProfile {
-  id          String   @id @default(cuid())
-  userId      String   @unique
-  fullName    String
-  email       String
-  phone       String?
-  dateOfBirth DateTime?
+  id               String    @id @default(cuid())
+  userId           String    @unique
+  fullName         String
+  email            String
+  phone            String?
+  dateOfBirth      DateTime?
   emergencyContact String?
-  
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 
   // Relations
-  user        User            @relation(fields: [userId], references: [id], onDelete: Cascade)
-  leases      LeaseContract[]
+  user   User            @relation(fields: [userId], references: [id], onDelete: Cascade)
+  leases LeaseContract[]
 
   @@map("tenant_profiles")
 }
 
 model Property {
-  id           String       @id @default(cuid())
-  landlordId   String
-  name         String
-  type         PropertyType
-  address      String
-  city         String?
-  state        String?
-  zipCode      String?
-  country      String       @default("US")
-  description  String?      @db.Text
-  imageUrl     String?
-  
-  yearBuilt    Int?
-  totalUnits   Int          @default(1)
-  
-  createdAt    DateTime     @default(now())
-  updatedAt    DateTime     @updatedAt
+  id         String          @id @default(cuid())
+  landlordId String
+  landlord   LandlordProfile @relation(fields: [landlordId], references: [id], onDelete: Cascade)
+
+  name      String
+  address   String
+  city      String?
+  state     String?
+  zipCode   String?
+  country   String  @default("US")
+  latitude  Float?
+  longitude Float?
+
+  type          PropertyType
+  furnishing    Furnishing?
+  floorArea     Float?
+  floorLevel    Int?
+  numBedrooms   Int?
+  numBathrooms  Int?
+  parkingSpaces Int?
+  yearBuilt     Int?
+  availableFrom DateTime?
+  status        PropertyStatus @default(AVAILABLE)
+
+  description      String?  @db.Text
+  rentalPrice      Decimal? @db.Decimal(10, 2)
+  hasMultipleUnits Boolean  @default(false)
+  totalUnits       Int      @default(1)
+
+  photos           String[]
+  imageUrl         String?
+  videoTourUrl     String?
+  virtualTourUrl   String?
+  tags             String[]
+  nearby           Json?
+  propertyFeatures Json?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 
   // Relations
-  landlord     LandlordProfile    @relation(fields: [landlordId], references: [id], onDelete: Cascade)
-  units        Unit[]
-  amenities    PropertyAmenity[]
-  leases       LeaseContract[]
+  units     Unit[]
+  amenities PropertyAmenity[]
+  leases    LeaseContract[]
 
   @@map("properties")
 }
 
 model Unit {
-  id           String      @id @default(cuid())
-  propertyId   String
-  name         String
-  floor        Int?
-  rentAmount   Decimal     @db.Decimal(10, 2)
-  sizeM2       Decimal?    @db.Decimal(10, 2)
-  bedrooms     Int?
-  bathrooms    Decimal?    @db.Decimal(3, 1)
-  status       UnitStatus  @default(AVAILABLE)
-  description  String?     @db.Text
-  imageUrl     String?
-  
-  createdAt    DateTime    @default(now())
-  updatedAt    DateTime    @updatedAt
+  id         String   @id @default(cuid())
+  propertyId String
+  property   Property @relation(fields: [propertyId], references: [id], onDelete: Cascade)
+
+  name          String
+  floor         Int?
+  bedrooms      Int
+  bathrooms     Int
+  rent          Decimal     @db.Decimal(10, 2)
+  deposit       Decimal?    @db.Decimal(10, 2)
+  available     Boolean     @default(true)
+  areaSize      Float?
+  sizeM2        Decimal?    @db.Decimal(10, 2)
+  furnishing    Furnishing?
+  utilities     Json? // { waterIncluded: true, electricityIncluded: false }
+  availableFrom DateTime?
+  photos        String[]
+  imageUrl      String?
+
+  status      UnitStatus @default(AVAILABLE)
+  description String?    @db.Text
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 
   // Relations
-  property     Property         @relation(fields: [propertyId], references: [id], onDelete: Cascade)
-  leases       LeaseContract[]
+  leases LeaseContract[]
 
   @@map("units")
 }
 
 model Amenity {
-  id          String   @id @default(cuid())
-  name        String   @unique
+  id          String  @id @default(cuid())
+  name        String  @unique
   description String?
   icon        String?
-  
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 
   // Relations
-  properties  PropertyAmenity[]
+  properties PropertyAmenity[]
 
   @@map("amenities")
 }
@@ -236,57 +289,57 @@ model PropertyAmenity {
   propertyId String
   amenityId  String
 
-  property   Property @relation(fields: [propertyId], references: [id], onDelete: Cascade)
-  amenity    Amenity  @relation(fields: [amenityId], references: [id], onDelete: Cascade)
+  property Property @relation(fields: [propertyId], references: [id], onDelete: Cascade)
+  amenity  Amenity  @relation(fields: [amenityId], references: [id], onDelete: Cascade)
 
   @@id([propertyId, amenityId])
   @@map("property_amenities")
 }
 
 model LeaseContract {
-  id             String        @id @default(cuid())
-  propertyId     String
-  unitId         String
-  landlordId     String
-  tenantId       String
-  
-  startDate      DateTime
-  endDate        DateTime
-  rentAmount     Decimal       @db.Decimal(10, 2)
-  depositAmount  Decimal       @db.Decimal(10, 2)
-  
-  status         LeaseStatus   @default(DRAFT)
-  
+  id         String @id @default(cuid())
+  propertyId String
+  unitId     String
+  landlordId String
+  tenantId   String
+
+  startDate     DateTime
+  endDate       DateTime
+  rentAmount    Decimal  @db.Decimal(10, 2)
+  depositAmount Decimal  @db.Decimal(10, 2)
+
+  status LeaseStatus @default(DRAFT)
+
   // Billing Configuration
-  billingDay     Int           @default(1) // Day of month for billing (1-31)
-  billingCycleMonths Int        @default(1) // 1=monthly, 3=quarterly, 6=semi-annual, 12=annual
-  
+  billingDay         Int @default(1) // Day of month for billing (1-31)
+  billingCycleMonths Int @default(1) // 1=monthly, 3=quarterly, 6=semi-annual, 12=annual
+
   // Discount Configuration
-  discountType   DiscountType?
-  discountValue  Decimal?      @db.Decimal(10, 2) // Percentage (e.g., 10) or fixed amount (e.g., 100.00)
-  
-  lateFeeAmount  Decimal?      @db.Decimal(10, 2)
-  
-  terms          String?       @db.Text
-  notes          String?       @db.Text
-  documentUrl    String?
-  
-  signedAt       DateTime?
-  terminatedAt   DateTime?
-  
-  createdAt      DateTime      @default(now())
-  updatedAt      DateTime      @updatedAt
+  discountType  DiscountType?
+  discountValue Decimal?      @db.Decimal(10, 2) // Percentage (e.g., 10) or fixed amount (e.g., 100.00)
+
+  lateFeeAmount Decimal? @db.Decimal(10, 2)
+
+  terms       String? @db.Text
+  notes       String? @db.Text
+  documentUrl String?
+
+  signedAt     DateTime?
+  terminatedAt DateTime?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 
   // Relations
-  property       Property        @relation(fields: [propertyId], references: [id], onDelete: Restrict)
-  unit           Unit            @relation(fields: [unitId], references: [id], onDelete: Restrict)
-  landlord       LandlordProfile @relation(fields: [landlordId], references: [id], onDelete: Restrict)
-  tenant         TenantProfile   @relation(fields: [tenantId], references: [id], onDelete: Restrict)
-  payments       Payment[]
+  property            Property             @relation(fields: [propertyId], references: [id], onDelete: Restrict)
+  unit                Unit                 @relation(fields: [unitId], references: [id], onDelete: Restrict)
+  landlord            LandlordProfile      @relation(fields: [landlordId], references: [id], onDelete: Restrict)
+  tenant              TenantProfile        @relation(fields: [tenantId], references: [id], onDelete: Restrict)
+  payments            Payment[]
   maintenanceRequests MaintenanceRequest[]
-  fees           LeaseFee[]
-  usageRecords   UsageRecord[]
-  invoices       Invoice[]
+  fees                LeaseFee[]
+  usageRecords        UsageRecord[]
+  invoices            Invoice[]
 
   @@map("lease_contracts")
 }
@@ -301,31 +354,31 @@ model Payment {
   paymentMethod String?
   transactionId String?
   notes         String?
-  
-  createdAt     DateTime      @default(now())
-  updatedAt     DateTime      @updatedAt
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 
   // Relations
-  lease         LeaseContract @relation(fields: [leaseId], references: [id], onDelete: Cascade)
+  lease LeaseContract @relation(fields: [leaseId], references: [id], onDelete: Cascade)
 
   @@map("payments")
 }
 
 model MaintenanceRequest {
-  id          String   @id @default(cuid())
+  id          String  @id @default(cuid())
   leaseId     String
   title       String
-  description String   @db.Text
-  priority    String   @default("MEDIUM") // LOW, MEDIUM, HIGH, URGENT
-  status      String   @default("OPEN")   // OPEN, IN_PROGRESS, RESOLVED, CLOSED
+  description String  @db.Text
+  priority    String  @default("MEDIUM") // LOW, MEDIUM, HIGH, URGENT
+  status      String  @default("OPEN") // OPEN, IN_PROGRESS, RESOLVED, CLOSED
   imageUrl    String?
-  
-  resolvedAt  DateTime?
-  createdAt   DateTime  @default(now())
-  updatedAt   DateTime  @updatedAt
+
+  resolvedAt DateTime?
+  createdAt  DateTime  @default(now())
+  updatedAt  DateTime  @updatedAt
 
   // Relations
-  lease       LeaseContract @relation(fields: [leaseId], references: [id], onDelete: Cascade)
+  lease LeaseContract @relation(fields: [leaseId], references: [id], onDelete: Cascade)
 
   @@map("maintenance_requests")
 }
@@ -333,26 +386,26 @@ model MaintenanceRequest {
 // New Billing Models
 
 model LeaseFee {
-  id          String   @id @default(cuid())
-  leaseId     String
-  name        String              // e.g., "Electricity", "Water", "Service Fee", "Parking"
-  type        FeeType
-  
+  id      String  @id @default(cuid())
+  leaseId String
+  name    String // e.g., "Electricity", "Water", "Service Fee", "Parking"
+  type    FeeType
+
   // For FIXED fees
-  amount      Decimal?  @db.Decimal(10, 2) // Fixed monthly amount
-  
+  amount Decimal? @db.Decimal(10, 2) // Fixed monthly amount
+
   // For VARIABLE fees
-  unitPrice   Decimal?  @db.Decimal(10, 2) // Price per unit (e.g., per kWh, per m³)
-  billingUnit String?             // e.g., "kWh", "m³", "unit"
-  
-  isMandatory Boolean   @default(true)
-  isActive    Boolean   @default(true)
-  
-  createdAt   DateTime  @default(now())
-  updatedAt   DateTime  @updatedAt
+  unitPrice   Decimal? @db.Decimal(10, 2) // Price per unit (e.g., per kWh, per m³)
+  billingUnit String? // e.g., "kWh", "m³", "unit"
+
+  isMandatory Boolean @default(true)
+  isActive    Boolean @default(true)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 
   // Relations
-  lease       LeaseContract @relation(fields: [leaseId], references: [id], onDelete: Cascade)
+  lease        LeaseContract @relation(fields: [leaseId], references: [id], onDelete: Cascade)
   usageRecords UsageRecord[]
   invoiceItems InvoiceItem[]
 
@@ -360,84 +413,83 @@ model LeaseFee {
 }
 
 model UsageRecord {
-  id          String   @id @default(cuid())
-  leaseId     String
-  feeId       String
-  
-  periodMonth DateTime           // Start of the month (e.g., 2025-02-01)
+  id      String @id @default(cuid())
+  leaseId String
+  feeId   String
+
+  periodMonth DateTime // Start of the month (e.g., 2025-02-01)
   usageValue  Decimal  @db.Decimal(10, 2) // 120 kWh, 15 m³, etc.
   totalAmount Decimal  @db.Decimal(10, 2) // usageValue * unitPrice
-  
-  notes       String?
-  
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
+
+  notes String?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 
   // Relations
-  lease       LeaseContract @relation(fields: [leaseId], references: [id], onDelete: Cascade)
-  fee         LeaseFee      @relation(fields: [feeId], references: [id], onDelete: Cascade)
+  lease LeaseContract @relation(fields: [leaseId], references: [id], onDelete: Cascade)
+  fee   LeaseFee      @relation(fields: [feeId], references: [id], onDelete: Cascade)
 
   @@unique([leaseId, feeId, periodMonth])
   @@map("usage_records")
 }
 
 model Invoice {
-  id              String        @id @default(cuid())
-  leaseId         String
-  invoiceNumber   String        @unique // e.g., "INV-2025-001"
-  
-  periodStart     DateTime      // Billing period start (e.g., 2025-01-01)
-  periodEnd       DateTime      // Billing period end (e.g., 2025-03-31)
-  
-  issueDate       DateTime      @default(now())
-  dueDate         DateTime
-  
+  id            String @id @default(cuid())
+  leaseId       String
+  invoiceNumber String @unique // e.g., "INV-2025-001"
+
+  periodStart DateTime // Billing period start (e.g., 2025-01-01)
+  periodEnd   DateTime // Billing period end (e.g., 2025-03-31)
+
+  issueDate DateTime @default(now())
+  dueDate   DateTime
+
   // Amounts
-  subtotal        Decimal       @db.Decimal(10, 2) // Sum of all items before discount
-  discountAmount  Decimal       @db.Decimal(10, 2) @default(0)
-  taxAmount       Decimal       @db.Decimal(10, 2) @default(0)
-  totalAmount     Decimal       @db.Decimal(10, 2) // Final amount after discount
-  
-  status          InvoiceStatus @default(UNPAID)
-  
-  paidAt          DateTime?
-  paidAmount      Decimal?      @db.Decimal(10, 2)
-  paymentMethod   String?
-  
-  notes           String?       @db.Text
-  
-  createdAt       DateTime      @default(now())
-  updatedAt       DateTime      @updatedAt
+  subtotal       Decimal @db.Decimal(10, 2) // Sum of all items before discount
+  discountAmount Decimal @default(0) @db.Decimal(10, 2)
+  taxAmount      Decimal @default(0) @db.Decimal(10, 2)
+  totalAmount    Decimal @db.Decimal(10, 2) // Final amount after discount
+
+  status InvoiceStatus @default(UNPAID)
+
+  paidAt        DateTime?
+  paidAmount    Decimal?  @db.Decimal(10, 2)
+  paymentMethod String?
+
+  notes String? @db.Text
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 
   // Relations
-  lease           LeaseContract @relation(fields: [leaseId], references: [id], onDelete: Restrict)
-  items           InvoiceItem[]
+  lease LeaseContract @relation(fields: [leaseId], references: [id], onDelete: Restrict)
+  items InvoiceItem[]
 
   @@map("invoices")
 }
 
 model InvoiceItem {
-  id          String          @id @default(cuid())
-  invoiceId   String
-  feeId       String?         // Reference to LeaseFee if applicable
-  
+  id        String  @id @default(cuid())
+  invoiceId String
+  feeId     String? // Reference to LeaseFee if applicable
+
   type        InvoiceItemType
-  name        String          // "Rent", "Electricity", "Water", "Discount", etc.
+  name        String // "Rent", "Electricity", "Water", "Discount", etc.
   description String?
-  
-  quantity    Decimal         @db.Decimal(10, 2) @default(1) // For variable fees
-  unitPrice   Decimal         @db.Decimal(10, 2)
-  amount      Decimal         @db.Decimal(10, 2) // quantity * unitPrice
-  
-  periodStart DateTime?       // For tracking which period this item covers
+
+  quantity  Decimal @default(1) @db.Decimal(10, 2) // For variable fees
+  unitPrice Decimal @db.Decimal(10, 2)
+  amount    Decimal @db.Decimal(10, 2) // quantity * unitPrice
+
+  periodStart DateTime? // For tracking which period this item covers
   periodEnd   DateTime?
-  
-  createdAt   DateTime        @default(now())
+
+  createdAt DateTime @default(now())
 
   // Relations
-  invoice     Invoice         @relation(fields: [invoiceId], references: [id], onDelete: Cascade)
-  fee         LeaseFee?       @relation(fields: [feeId], references: [id], onDelete: SetNull)
+  invoice Invoice   @relation(fields: [invoiceId], references: [id], onDelete: Cascade)
+  fee     LeaseFee? @relation(fields: [feeId], references: [id], onDelete: SetNull)
 
   @@map("invoice_items")
 }
-

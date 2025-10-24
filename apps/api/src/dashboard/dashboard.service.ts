@@ -10,10 +10,11 @@ import { addDays, subMonths, startOfMonth, endOfMonth, format, differenceInDays 
 export class DashboardService {
   constructor(
     private readonly db: DatabaseService,
-    private readonly propertiesService: PropertiesService,
-    private readonly leasesService: LeasesService,
-    private readonly billingService: BillingService,
-    private readonly maintenanceService: MaintenanceService,
+    // Temporarily comment out service dependencies
+    // private readonly propertiesService: PropertiesService,
+    // private readonly leasesService: LeasesService,
+    // private readonly billingService: BillingService,
+    // private readonly maintenanceService: MaintenanceService,
   ) {}
 
   /**
@@ -172,7 +173,7 @@ export class DashboardService {
         id: unit.id,
         unit: `${unit.property.name} - ${unit.name}`,
         type: `${unit.bedrooms || 0}BR`,
-        rentAmount: Number(unit.rentAmount),
+        rentAmount: Number(unit.rent),
         daysVacant: Math.max(0, daysVacant),
       };
     });

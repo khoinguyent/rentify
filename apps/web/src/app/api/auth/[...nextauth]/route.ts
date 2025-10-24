@@ -1,6 +1,7 @@
 import NextAuth, { type NextAuthOptions } from 'next-auth';
 import CredentialsProvider from 'next-auth/providers/credentials';
 import { compare } from 'bcryptjs';
+import { generateJwtToken } from '@/lib/jwt';
 const { prisma } = require('@rentify/db');
 
 export const authOptions: NextAuthOptions = {
@@ -58,6 +59,12 @@ export const authOptions: NextAuthOptions = {
       if (user) {
         token.id = user.id;
         token.role = user.role;
+        // Generate JWT token compatible with NestJS
+        token.nestjsToken = generateJwtToken({
+          sub: user.id,
+          email: user.email || '',
+          role: user.role,
+        });
       }
       return token;
     },
@@ -65,6 +72,7 @@ export const authOptions: NextAuthOptions = {
       if (session.user) {
         session.user.id = token.id as string;
         session.user.role = token.role as string;
+        (session as any).nestjsToken = token.nestjsToken as string;
       }
       return session;
     },

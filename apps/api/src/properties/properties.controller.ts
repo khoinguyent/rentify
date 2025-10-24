@@ -51,5 +51,11 @@ export class PropertiesController {
   remove(@Param('id') id: string) {
     return this.propertiesService.remove(id);
   }
+
+  @Get('amenities/list')
+  @ApiOperation({ summary: 'Get all available amenities' })
+  async getAmenities() {
+    return this.propertiesService.getAmenities();
+  }
 }
 

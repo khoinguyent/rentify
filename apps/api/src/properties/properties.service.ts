@@ -25,16 +25,36 @@ export class PropertiesService {
       });
     }
 
-    return this.db.property.create({
+    // Extract amenities from DTO
+    const { amenities, ...propertyData } = createPropertyDto;
+
+    // Create property with amenities
+    const property = await this.db.property.create({
       data: {
-        ...createPropertyDto,
+        ...propertyData,
         landlordId: landlordProfile.id,
+        amenities: amenities
+          ? {
+              create: amenities.map((amenityId) => ({
+                amenity: {
+                  connect: { id: amenityId },
+                },
+              })),
+            }
+          : undefined,
       },
       include: {
         landlord: true,
         units: true,
+        amenities: {
+          include: {
+            amenity: true,
+          },
+        },
       },
     });
+
+    return property;
   }
 
   async findAll(user: any, landlordId?: string) {
@@ -89,14 +109,57 @@ export class PropertiesService {
   async update(id: string, updatePropertyDto: UpdatePropertyDto) {
     const property = await this.findOne(id);
 
-    return this.db.property.update({
+    // Extract amenities from DTO and handle separately
+    const { amenities, ...propertyData } = updatePropertyDto;
+
+    // Update property data
+    const updatedProperty = await this.db.property.update({
       where: { id },
-      data: updatePropertyDto,
+      data: propertyData,
       include: {
         landlord: true,
         units: true,
+        amenities: {
+          include: {
+            amenity: true,
+          },
+        },
       },
     });
+
+    // Handle amenities update if provided
+    if (amenities !== undefined) {
+      // Remove existing amenities
+      await this.db.propertyAmenity.deleteMany({
+        where: { propertyId: id },
+      });
+
+      // Add new amenities
+      if (amenities.length > 0) {
+        await this.db.propertyAmenity.createMany({
+          data: amenities.map(amenityId => ({
+            propertyId: id,
+            amenityId,
+          })),
+        });
+      }
+
+      // Return updated property with amenities
+      return this.db.property.findUnique({
+        where: { id },
+        include: {
+          landlord: true,
+          units: true,
+          amenities: {
+            include: {
+              amenity: true,
+            },
+          },
+        },
+      });
+    }
+
+    return updatedProperty;
   }
 
   async remove(id: string) {
@@ -133,6 +196,17 @@ export class PropertiesService {
       },
       include: {
         property: true,
+      },
+    });
+  }
+
+  /**
+   * Get all available amenities
+   */
+  async getAmenities() {
+    return this.db.amenity.findMany({
+      orderBy: {
+        name: 'asc',
       },
     });
   }
