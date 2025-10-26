@@ -2,7 +2,6 @@ import React from 'react';
 
 interface Property {
   type?: string;
-  propertyType?: string;
   furnishing?: string;
   numBedrooms?: number;
   numBathrooms?: number;
@@ -34,10 +33,10 @@ export function PropertyOverview({ property }: PropertyOverviewProps) {
     <div className="bg-white rounded-2xl shadow p-6">
       <h2 className="text-lg font-semibold text-gray-800 mb-4">Overview</h2>
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-        {(property.type || property.propertyType) && (
+        {property.type && (
           <div>
             <p className="text-sm text-gray-500 mb-1">Type</p>
-            <p className="text-gray-800 font-medium">{property.type || property.propertyType}</p>
+            <p className="text-gray-800 font-medium">{property.type}</p>
           </div>
         )}
         {property.furnishing && (

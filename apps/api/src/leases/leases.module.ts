@@ -8,4 +8,3 @@ import { LeasesService } from './leases.service';
   exports: [LeasesService],
 })
 export class LeasesModule {}
-

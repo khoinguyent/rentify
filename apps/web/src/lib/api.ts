@@ -38,7 +38,7 @@ export interface Property {
   availableFrom?: string;
   hasMultipleUnits?: boolean;
   totalUnits?: number;
-  amenities?: Array<{ id: string; name: string; icon?: string }>;
+  amenities?: Array<{ id: string; name?: string; icon?: string; description?: string }>;
   units?: Array<{
     id: string;
     name: string;
@@ -50,6 +50,20 @@ export interface Property {
   photos?: string[];
   imageUrl?: string;
   description?: string;
+  activeTenant?: {
+    id: string;
+    name: string;
+    email?: string;
+    phone?: string;
+  };
+  activeLease?: {
+    id: string;
+    startDate: string;
+    endDate: string;
+    rentAmount: number;
+    documentUrl?: string | null;
+    status: string;
+  };
 }
 
 // Get all properties
@@ -66,7 +80,14 @@ export async function getProperties(): Promise<Property[]> {
 // Get property by ID
 export async function getPropertyById(id: string): Promise<Property | null> {
   try {
-    const data = await fetchWithAuth(`${API_BASE_URL}/properties/${id}`);
+    // Add cache-busting timestamp to ensure fresh data
+    const timestamp = new Date().getTime();
+    const data = await fetchWithAuth(`${API_BASE_URL}/properties/${id}?_t=${timestamp}`);
+    console.log('API getPropertyById response:', {
+      id: data?.id,
+      amenitiesCount: data?.amenities?.length || 0,
+      amenitiesStructure: data?.amenities?.[0]
+    });
     return data;
   } catch (error) {
     console.error('Error fetching property:', error);

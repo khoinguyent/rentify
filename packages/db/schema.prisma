@@ -2,7 +2,7 @@
 
 generator client {
   provider      = "prisma-client-js"
-  binaryTargets = ["native", "linux-arm64-openssl-1.1.x", "linux-arm64-openssl-3.0.x"]
+  binaryTargets = ["native", "linux-arm64-openssl-1.1.x", "linux-arm64-openssl-3.0.x", "linux-musl-arm64-openssl-3.0.x"]
 }
 
 datasource db {
@@ -234,8 +234,31 @@ model Property {
   units     Unit[]
   amenities PropertyAmenity[]
   leases    LeaseContract[]
+  images    PropertyImage[]
 
   @@map("properties")
+}
+
+model PropertyImage {
+  id         String @id @default(cuid())
+  propertyId String
+  property   Property @relation(fields: [propertyId], references: [id], onDelete: Cascade)
+
+  fileName    String
+  originalName String
+  fileSize    Int
+  mimeType    String
+  storageKey  String // MinIO object key
+  url         String // Presigned URL or public URL
+  altText     String?
+  caption     String?
+  isPrimary   Boolean @default(false)
+  sortOrder   Int     @default(0)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@map("property_images")
 }
 
 model Unit {

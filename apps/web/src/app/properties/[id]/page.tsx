@@ -4,15 +4,13 @@ import { useSession } from 'next-auth/react';
 import { useRouter, useParams } from 'next/navigation';
 import { useEffect, useState } from 'react';
 import { Sidebar } from '@/components/Sidebar';
-import {
-  PropertyHeader,
-  PropertyOverview,
-  PropertyMap,
-  PropertyAmenities,
-  PropertyUnits,
-  PropertyMedia,
-  PropertyDescription,
-} from '@/components/property';
+import { PropertyImageGallery } from '@/components/property/PropertyImageGallery';
+import { PropertyHeader } from '@/components/property/PropertyHeader';
+import { AddressMapSection } from '@/components/property/AddressMapSection';
+import { PropertyAmenities } from '@/components/property/PropertyAmenities';
+import { TenantContactCard } from '@/components/property/TenantContactCard';
+import { LeaseCard } from '@/components/property/LeaseCard';
+import { MobileContactBar } from '@/components/property/MobileContactBar';
 import { getPropertyById, Property } from '@/lib/api';
 
 export default function PropertyDetailsPage() {
@@ -24,6 +22,7 @@ export default function PropertyDetailsPage() {
   const [property, setProperty] = useState<Property | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [isFavorite, setIsFavorite] = useState(false);
 
   useEffect(() => {
     if (status === 'unauthenticated') {
@@ -55,9 +54,20 @@ export default function PropertyDetailsPage() {
     }
   }, [status, propertyId]);
 
+  const handleContact = () => {
+    const contactSection = document.getElementById('contact-section');
+    if (contactSection) {
+      contactSection.scrollIntoView({ behavior: 'smooth' });
+    }
+  };
+
+  const handleFavorite = () => {
+    setIsFavorite(!isFavorite);
+  };
+
   if (status === 'loading' || loading) {
     return (
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+      <div className="min-h-screen bg-gradient-to-br from-[#E9F5F6] to-[#F8FBFB] flex items-center justify-center">
         <div className="text-center">
           <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-[#5BA0A4] mx-auto mb-4"></div>
           <p className="text-gray-600">Loading property...</p>
@@ -72,7 +82,7 @@ export default function PropertyDetailsPage() {
 
   if (error) {
     return (
-      <div className="min-h-screen bg-gray-50 flex">
+      <div className="min-h-screen bg-gradient-to-br from-[#E9F5F6] to-[#F8FBFB] flex">
         <Sidebar />
         <div className="flex-1 ml-64 p-6">
           <div className="text-center py-16">
@@ -85,7 +95,7 @@ export default function PropertyDetailsPage() {
             <p className="text-gray-600 mb-4">{error}</p>
             <button
               onClick={() => router.push('/properties')}
-              className="bg-[#5BA0A4] text-white px-4 py-2 rounded-md hover:bg-[#4a8e91] transition-colors"
+              className="bg-[#5BA0A4] text-white px-6 py-2.5 rounded-lg hover:bg-[#4a8e91] transition-colors font-medium shadow-md"
             >
               Back to Properties
             </button>
@@ -97,7 +107,7 @@ export default function PropertyDetailsPage() {
 
   if (!property) {
     return (
-      <div className="min-h-screen bg-gray-50 flex">
+      <div className="min-h-screen bg-gradient-to-br from-[#E9F5F6] to-[#F8FBFB] flex">
         <Sidebar />
         <div className="flex-1 ml-64 p-6">
           <div className="text-center py-16">
@@ -105,7 +115,7 @@ export default function PropertyDetailsPage() {
             <p className="text-gray-600 mb-4">The property you're looking for doesn't exist.</p>
             <button
               onClick={() => router.push('/properties')}
-              className="bg-[#5BA0A4] text-white px-4 py-2 rounded-md hover:bg-[#4a8e91] transition-colors"
+              className="bg-[#5BA0A4] text-white px-6 py-2.5 rounded-lg hover:bg-[#4a8e91] transition-colors font-medium shadow-md"
             >
               Back to Properties
             </button>
@@ -115,15 +125,17 @@ export default function PropertyDetailsPage() {
     );
   }
 
+  const tenant = property.activeTenant;
+
   return (
-    <div className="min-h-screen bg-gray-50 flex">
+    <div className="min-h-screen bg-gradient-to-br from-[#E9F5F6] to-[#F8FBFB] flex">
       {/* Sidebar */}
       <Sidebar />
 
       {/* Main Content */}
       <div className="flex-1 ml-64">
         {/* Header */}
-        <header className="bg-white border-b border-gray-200 h-16 flex items-center px-6 sticky top-0 z-30">
+        <header className="bg-white border-b border-gray-200 h-16 flex items-center px-6 sticky top-0 z-30 shadow-sm">
           <button
             onClick={() => router.push('/properties')}
             className="flex items-center gap-2 text-gray-600 hover:text-gray-900 transition-colors"
@@ -136,17 +148,72 @@ export default function PropertyDetailsPage() {
         </header>
 
         {/* Page Content */}
-        <main className="p-6">
-          <div className="max-w-6xl mx-auto space-y-6">
-            <PropertyHeader property={property} />
-            <PropertyOverview property={property} />
-            <PropertyMap property={property} />
-            <PropertyAmenities property={property} />
-            {property.hasMultipleUnits && <PropertyUnits property={property} />}
-            <PropertyMedia property={property} />
-            <PropertyDescription property={property} />
+        <main className="p-6 pb-20 md:pb-6 space-y-8">
+          <div className="max-w-7xl mx-auto">
+            {/* Image Gallery Block */}
+            <div className="mb-8 animate-in fade-in duration-500">
+              <PropertyImageGallery 
+                images={property.photos || []} 
+                alt={property.name}
+              />
+            </div>
+
+            {/* Main Content Grid */}
+            <div className={`grid grid-cols-1 ${tenant ? 'lg:grid-cols-3' : 'lg:grid-cols-1'} gap-8`}>
+              {/* Left Column - Main Content */}
+              <div className={`${tenant ? 'lg:col-span-2' : 'lg:col-span-1'} space-y-8`}>
+                {/* Property Header Block */}
+                <div className="bg-gradient-to-br from-[#E9F5F6] to-[#F8FBFB] rounded-2xl shadow-md px-8 py-10 animate-in slide-in-from-top duration-700">
+                  <PropertyHeader property={property} />
+                </div>
+
+                {/* Location Block */}
+                <div className="bg-white rounded-2xl shadow-md px-8 py-8 animate-in slide-in-from-bottom duration-700" style={{ animationDelay: '100ms' }}>
+                  <AddressMapSection property={property} />
+                </div>
+
+                {/* Amenities Block */}
+                <div className="animate-in slide-in-from-bottom duration-700" style={{ animationDelay: '200ms' }}>
+                  <PropertyAmenities amenities={property.amenities || []} />
+                </div>
+              </div>
+
+              {/* Right Column - Contact Card & Lease Card */}
+              {tenant ? (
+                <div className="lg:col-span-1 space-y-8">
+                  <div id="contact-section">
+                    <TenantContactCard 
+                      tenant={tenant} 
+                      propertyName={property.name}
+                    />
+                  </div>
+                  
+                  <LeaseCard lease={property.activeLease} onAddLease={() => {
+                    console.log('Add lease clicked');
+                    // TODO: Implement lease creation modal or redirect
+                  }} />
+                </div>
+              ) : (
+                <div className="lg:col-span-2">
+                  <LeaseCard lease={property.activeLease} onAddLease={() => {
+                    console.log('Add lease clicked');
+                    // TODO: Implement lease creation modal or redirect
+                  }} />
+                </div>
+              )}
+            </div>
           </div>
         </main>
+
+        {/* Mobile Contact Bar */}
+        {tenant && (
+          <MobileContactBar
+            property={property}
+            onContact={handleContact}
+            onFavorite={handleFavorite}
+            isFavorite={isFavorite}
+          />
+        )}
       </div>
     </div>
   );

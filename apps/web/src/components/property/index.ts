@@ -9,4 +9,11 @@ export { PropertyUnits } from './PropertyUnits';
 export { PropertyMedia } from './PropertyMedia';
 export { PropertyDescription } from './PropertyDescription';
 export { PropertyEditForm } from './PropertyEditForm';
+export { default as PropertyAmenitiesTab } from './PropertyAmenitiesTab';
+export { default as PropertyImagesTab } from './PropertyImagesTab';
+export { PropertyImageGallery } from './PropertyImageGallery';
+export { AddressMapSection } from './AddressMapSection';
+export { TenantContactCard } from './TenantContactCard';
+export { LeaseCard } from './LeaseCard';
+export { MobileContactBar } from './MobileContactBar';
 

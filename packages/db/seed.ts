@@ -52,6 +52,13 @@ async function main() {
 
   console.log('✅ Created landlord:', landlordProfile.name);
 
+  // Clean up existing properties and related data
+  console.log('🧹 Cleaning up existing properties and related data...');
+  // Delete in order to respect foreign key constraints
+  await prisma.leaseContract.deleteMany({});
+  await prisma.property.deleteMany({});
+  console.log('✅ Cleaned up existing properties');
+
   // Create tenant user
   const tenantPassword = await bcrypt.hash('tenant123', 10);
   const tenantUser = await prisma.user.upsert({
@@ -80,17 +87,116 @@ async function main() {
 
   console.log('✅ Created tenant:', tenantProfile.fullName);
 
-  // Create amenities
+  // Create comprehensive amenities list (Airbnb-style)
   const amenities = await Promise.all([
+    // Basic Amenities
+    prisma.amenity.upsert({
+      where: { name: 'WiFi' },
+      update: {},
+      create: { name: 'WiFi', description: 'High-speed internet included', icon: '📶' },
+    }),
+    prisma.amenity.upsert({
+      where: { name: 'Air Conditioning' },
+      update: {},
+      create: { name: 'Air Conditioning', description: 'Central air conditioning', icon: '❄️' },
+    }),
+    prisma.amenity.upsert({
+      where: { name: 'Heating' },
+      update: {},
+      create: { name: 'Heating', description: 'Central heating system', icon: '🔥' },
+    }),
+    prisma.amenity.upsert({
+      where: { name: 'Kitchen' },
+      update: {},
+      create: { name: 'Kitchen', description: 'Fully equipped kitchen', icon: '🍳' },
+    }),
+    prisma.amenity.upsert({
+      where: { name: 'Refrigerator' },
+      update: {},
+      create: { name: 'Refrigerator', description: 'Full-size refrigerator', icon: '🧊' },
+    }),
+    prisma.amenity.upsert({
+      where: { name: 'Microwave' },
+      update: {},
+      create: { name: 'Microwave', description: 'Microwave oven', icon: '📡' },
+    }),
+    prisma.amenity.upsert({
+      where: { name: 'Dishwasher' },
+      update: {},
+      create: { name: 'Dishwasher', description: 'Built-in dishwasher', icon: '🍽️' },
+    }),
+    prisma.amenity.upsert({
+      where: { name: 'Coffee Maker' },
+      update: {},
+      create: { name: 'Coffee Maker', description: 'Coffee machine', icon: '☕' },
+    }),
+    
+    // Bathroom & Laundry
+    prisma.amenity.upsert({
+      where: { name: 'Washing Machine' },
+      update: {},
+      create: { name: 'Washing Machine', description: 'In-unit washer', icon: '🧺' },
+    }),
+    prisma.amenity.upsert({
+      where: { name: 'Dryer' },
+      update: {},
+      create: { name: 'Dryer', description: 'Clothes dryer', icon: '🌪️' },
+    }),
+    prisma.amenity.upsert({
+      where: { name: 'Hot Water' },
+      update: {},
+      create: { name: 'Hot Water', description: 'Reliable hot water', icon: '♨️' },
+    }),
+    
+    // Entertainment
+    prisma.amenity.upsert({
+      where: { name: 'TV' },
+      update: {},
+      create: { name: 'TV', description: 'Smart TV with streaming', icon: '📺' },
+    }),
+    prisma.amenity.upsert({
+      where: { name: 'Sound System' },
+      update: {},
+      create: { name: 'Sound System', description: 'Audio system', icon: '🔊' },
+    }),
+    prisma.amenity.upsert({
+      where: { name: 'Game Console' },
+      update: {},
+      create: { name: 'Game Console', description: 'Gaming console', icon: '🎮' },
+    }),
+    
+    // Outdoor & Parking
     prisma.amenity.upsert({
       where: { name: 'Parking' },
       update: {},
-      create: { name: 'Parking', description: 'On-site parking available', icon: '🅿️' },
+      create: { name: 'Parking', description: 'On-site parking', icon: '🅿️' },
     }),
+    prisma.amenity.upsert({
+      where: { name: 'Balcony' },
+      update: {},
+      create: { name: 'Balcony', description: 'Private balcony', icon: '🏠' },
+    }),
+    prisma.amenity.upsert({
+      where: { name: 'Garden' },
+      update: {},
+      create: { name: 'Garden', description: 'Private garden', icon: '🌱' },
+    }),
+    prisma.amenity.upsert({
+      where: { name: 'Patio' },
+      update: {},
+      create: { name: 'Patio', description: 'Outdoor patio', icon: '🏡' },
+    }),
+    prisma.amenity.upsert({
+      where: { name: 'BBQ Grill' },
+      update: {},
+      create: { name: 'BBQ Grill', description: 'Barbecue grill', icon: '🔥' },
+    }),
+    
+    // Building Amenities
     prisma.amenity.upsert({
       where: { name: 'Swimming Pool' },
       update: {},
-      create: { name: 'Swimming Pool', description: 'Outdoor swimming pool', icon: '🏊' },
+      create: { name: 'Swimming Pool', description: 'Shared swimming pool', icon: '🏊' },
     }),
     prisma.amenity.upsert({
       where: { name: 'Gym' },
@@ -98,659 +204,380 @@ async function main() {
       create: { name: 'Gym', description: 'Fitness center', icon: '💪' },
     }),
     prisma.amenity.upsert({
+      where: { name: 'Sauna' },
+      update: {},
+      create: { name: 'Sauna', description: 'Sauna facility', icon: '🧖' },
+    }),
+    prisma.amenity.upsert({
+      where: { name: 'Elevator' },
+      update: {},
+      create: { name: 'Elevator', description: 'Building elevator', icon: '🛗' },
+    }),
+    prisma.amenity.upsert({
+      where: { name: 'Concierge' },
+      update: {},
+      create: { name: 'Concierge', description: '24/7 concierge service', icon: '🏛️' },
+    }),
+    
+    // Safety & Security
+    prisma.amenity.upsert({
+      where: { name: 'Security System' },
+      update: {},
+      create: { name: 'Security System', description: 'Security cameras', icon: '🔒' },
+    }),
+    prisma.amenity.upsert({
+      where: { name: 'Smoke Detector' },
+      update: {},
+      create: { name: 'Smoke Detector', description: 'Smoke detection system', icon: '🚨' },
+    }),
+    prisma.amenity.upsert({
+      where: { name: 'Carbon Monoxide Detector' },
+      update: {},
+      create: { name: 'Carbon Monoxide Detector', description: 'CO detection', icon: '⚠️' },
+    }),
+    
+    // Pet & Family
+    prisma.amenity.upsert({
       where: { name: 'Pet Friendly' },
       update: {},
       create: { name: 'Pet Friendly', description: 'Pets allowed', icon: '🐕' },
     }),
     prisma.amenity.upsert({
-      where: { name: 'Hot Water Machine' },
+      where: { name: 'Child Friendly' },
       update: {},
-      create: { name: 'Hot Water Machine', description: 'Instant hot water dispenser', icon: '♨️' },
+      create: { name: 'Child Friendly', description: 'Suitable for children', icon: '👶' },
     }),
     prisma.amenity.upsert({
-      where: { name: 'Air Conditioner' },
+      where: { name: 'High Chair' },
       update: {},
-      create: { name: 'Air Conditioner', description: 'Central air conditioning', icon: '❄️' },
+      create: { name: 'High Chair', description: 'Baby high chair', icon: '🪑' },
+    }),
+    
+    // Accessibility
+    prisma.amenity.upsert({
+      where: { name: 'Wheelchair Accessible' },
+      update: {},
+      create: { name: 'Wheelchair Accessible', description: 'ADA compliant', icon: '♿' },
     }),
     prisma.amenity.upsert({
-      where: { name: 'Refrigerator' },
+      where: { name: 'Step-Free Access' },
       update: {},
-      create: { name: 'Refrigerator', description: 'Full-size refrigerator included', icon: '🧊' },
+      create: { name: 'Step-Free Access', description: 'No stairs required', icon: '🚪' },
+    }),
+    
+    // Work & Business
+    prisma.amenity.upsert({
+      where: { name: 'Dedicated Workspace' },
+      update: {},
+      create: { name: 'Dedicated Workspace', description: 'Home office space', icon: '💻' },
     }),
     prisma.amenity.upsert({
-      where: { name: 'Television' },
+      where: { name: 'Printer' },
       update: {},
-      create: { name: 'Television', description: 'Smart TV with streaming capabilities', icon: '📺' },
+      create: { name: 'Printer', description: 'Printer available', icon: '🖨️' },
+    }),
+    
+    // Luxury Amenities
+    prisma.amenity.upsert({
+      where: { name: 'Jacuzzi' },
+      update: {},
+      create: { name: 'Jacuzzi', description: 'Hot tub', icon: '🛁' },
     }),
     prisma.amenity.upsert({
-      where: { name: 'WiFi' },
+      where: { name: 'Fireplace' },
       update: {},
-      create: { name: 'WiFi', description: 'High-speed internet included', icon: '📶' },
+      create: { name: 'Fireplace', description: 'Gas or electric fireplace', icon: '🔥' },
     }),
     prisma.amenity.upsert({
-      where: { name: 'Washing Machine' },
+      where: { name: 'Wine Cellar' },
       update: {},
-      create: { name: 'Washing Machine', description: 'In-unit washer and dryer', icon: '🧺' },
+      create: { name: 'Wine Cellar', description: 'Wine storage', icon: '🍷' },
     }),
   ]);
 
   console.log('✅ Created amenities:', amenities.length);
 
-  // Create a property
-  const property = await prisma.property.create({
+  // Calculate dates
+  const now = new Date();
+  const currentYear = now.getFullYear();
+  const currentMonth = now.getMonth();
+  const lastMonthStart = new Date(currentYear, currentMonth - 1, 1);
+  const yearStart = new Date(currentYear, 0, 1); // January 1st
+  const yearEnd = new Date(currentYear, 11, 31); // December 31st
+
+  // Create first property - with 3 units, all available from last month
+  const property1 = await prisma.property.create({
     data: {
       landlordId: landlordProfile.id,
-      name: 'Sunset Apartments',
+      name: 'Riverside Apartment Complex',
       type: 'APARTMENT',
-      address: '456 Oak Avenue',
-      city: 'San Francisco',
-      state: 'CA',
-      zipCode: '94102',
+      address: '125 Riverside Drive',
+      city: 'New York',
+      state: 'NY',
+      zipCode: '10001',
       country: 'US',
-      description: 'Modern apartments in the heart of the city',
-      totalUnits: 5,
-      yearBuilt: 2018,
+      description: 'Modern apartment complex with stunning river views',
+      totalUnits: 3,
+      yearBuilt: 2020,
       status: 'AVAILABLE',
       hasMultipleUnits: true,
       photos: [],
-      tags: [],
+      tags: ['modern', 'river-view', 'pet-friendly'],
     },
   });
 
-  console.log('✅ Created property:', property.name);
+  console.log('✅ Created property 1:', property1.name);
 
   // Create second property
   const property2 = await prisma.property.create({
     data: {
       landlordId: landlordProfile.id,
-      name: 'Downtown Plaza',
-      type: 'APARTMENT',
-      address: '789 Market Street',
-      city: 'San Francisco',
-      state: 'CA',
-      zipCode: '94103',
+      name: 'Downtown Luxury Lofts',
+      type: 'LOFT',
+      address: '567 Broadway',
+      city: 'New York',
+      state: 'NY',
+      zipCode: '10012',
       country: 'US',
-      description: 'Luxury apartments with premium amenities',
-      totalUnits: 8,
-      yearBuilt: 2020,
-      status: 'AVAILABLE',
-      hasMultipleUnits: true,
+      description: 'Stylish loft apartments in the heart of downtown',
+      totalUnits: 1,
+      yearBuilt: 2019,
+      status: 'RENTED',
+      hasMultipleUnits: false,
       photos: [],
-      tags: [],
+      tags: ['loft', 'downtown', 'luxury'],
     },
   });
 
-  console.log('✅ Created second property:', property2.name);
+  console.log('✅ Created property 2:', property2.name);
 
   // Create third property
   const property3 = await prisma.property.create({
     data: {
       landlordId: landlordProfile.id,
-      name: 'Garden Heights',
-      type: 'HOUSE',
-      address: '321 Pine Street',
-      city: 'San Francisco',
-      state: 'CA',
-      zipCode: '94104',
+      name: 'Urban Gardens Townhouse',
+      type: 'TOWNHOUSE',
+      address: '890 Park Avenue',
+      city: 'New York',
+      state: 'NY',
+      zipCode: '10021',
       country: 'US',
-      description: 'Charming houses with private gardens',
-      totalUnits: 3,
-      yearBuilt: 2015,
+      description: 'Beautiful townhouse with private garden space',
+      totalUnits: 1,
+      yearBuilt: 2021,
       status: 'AVAILABLE',
-      hasMultipleUnits: true,
+      hasMultipleUnits: false,
       photos: [],
-      tags: [],
+      tags: ['townhouse', 'garden', 'spacious'],
     },
   });
 
-  console.log('✅ Created third property:', property3.name);
+  console.log('✅ Created property 3:', property3.name);
 
   // Link amenities to properties
-  // Sunset Apartments - basic amenities
+  // Property 1 - Riverside Apartment Complex - comprehensive amenities
+  const amenityIndices1 = [0, 1, 2, 3, 6, 7, 13, 14]; // WiFi, AC, Heating, Kitchen, Refrigerator, Microwave, TV, Parking
   await Promise.all(
-    amenities.slice(0, 4).map((amenity) =>
+    amenityIndices1.map((idx) =>
       prisma.propertyAmenity.create({
         data: {
-          propertyId: property.id,
-          amenityId: amenity.id,
+          propertyId: property1.id,
+          amenityId: amenities[idx].id,
         },
       })
     )
   );
 
-  // Downtown Plaza - premium amenities
+  // Property 2 - Downtown Luxury Lofts - premium amenities
+  const amenityIndices2 = [0, 1, 2, 3, 13, 14, 17, 20]; // WiFi, AC, Heating, Kitchen, TV, Parking, Elevator, Security System
   await Promise.all(
-    amenities.slice(4, 10).map((amenity) =>
+    amenityIndices2.map((idx) =>
       prisma.propertyAmenity.create({
         data: {
           propertyId: property2.id,
-          amenityId: amenity.id,
+          amenityId: amenities[idx].id,
         },
       })
     )
   );
 
-  // Garden Heights - mixed amenities
-  await Promise.all([
-    prisma.propertyAmenity.create({
-      data: {
-        propertyId: property3.id,
-        amenityId: amenities[0].id, // Parking
-      },
-    }),
-    prisma.propertyAmenity.create({
-      data: {
-        propertyId: property3.id,
-        amenityId: amenities[3].id, // Pet Friendly
-      },
-    }),
-    prisma.propertyAmenity.create({
-      data: {
-        propertyId: property3.id,
-        amenityId: amenities[5].id, // Air Conditioner
-      },
-    }),
-    prisma.propertyAmenity.create({
-      data: {
-        propertyId: property3.id,
-        amenityId: amenities[6].id, // Refrigerator
-      },
-    }),
-  ]);
+  // Property 3 - Urban Gardens Townhouse - luxury amenities
+  const amenityIndices3 = [0, 1, 2, 3, 8, 11, 14, 22]; // WiFi, AC, Heating, Kitchen, Balcony, Garden, Patio, Pet Friendly
+  await Promise.all(
+    amenityIndices3.map((idx) =>
+      prisma.propertyAmenity.create({
+        data: {
+          propertyId: property3.id,
+          amenityId: amenities[idx].id,
+        },
+      })
+    )
+  );
 
-  // Create units for Sunset Apartments (5 units)
-  const sunsetUnits = await Promise.all([
+  // Create units for Property 1 (Riverside Apartment Complex) - 3 units, all available from last month
+  const riversideUnits = await Promise.all([
     prisma.unit.create({
       data: {
-        propertyId: property.id,
-        name: 'Unit 101',
-        floor: 1,
-        rent: 2500,
-        bedrooms: 2,
-        bathrooms: 1,
-        sizeM2: 75,
-        photos: [],
-        status: 'AVAILABLE',
-        description: 'Spacious 2-bedroom apartment with city view',
-      },
-    }),
-    prisma.unit.create({
-      data: {
-        propertyId: property.id,
-        name: 'Unit 102',
-        floor: 1,
-        rent: 2200,
-        bedrooms: 1,
-        bathrooms: 1,
-        sizeM2: 65,
-        photos: [],
-        status: 'AVAILABLE',
-        description: 'Cozy 1-bedroom apartment',
-      },
-    }),
-    prisma.unit.create({
-      data: {
-        propertyId: property.id,
-        name: 'Unit 201',
-        floor: 2,
-        rent: 3000,
-        bedrooms: 3,
-        bathrooms: 2,
-        sizeM2: 95,
-        photos: [],
-        status: 'OCCUPIED',
-        description: 'Luxury 3-bedroom apartment with balcony',
-      },
-    }),
-    prisma.unit.create({
-      data: {
-        propertyId: property.id,
-        name: 'Unit 202',
-        floor: 2,
+        propertyId: property1.id,
+        name: 'Unit 301',
+        floor: 3,
         rent: 2800,
         bedrooms: 2,
         bathrooms: 2,
-        sizeM2: 85,
+        sizeM2: 95,
         photos: [],
         status: 'AVAILABLE',
-        description: 'Modern 2-bedroom apartment',
+        availableFrom: lastMonthStart,
+        description: 'Spacious 2-bedroom apartment with stunning river views, modern kitchen',
       },
     }),
     prisma.unit.create({
       data: {
-        propertyId: property.id,
-        name: 'Unit 301',
+        propertyId: property1.id,
+        name: 'Unit 302',
         floor: 3,
         rent: 3200,
-        bedrooms: 3,
-        bathrooms: 2,
-        sizeM2: 100,
-        photos: [],
-        status: 'AVAILABLE',
-        description: 'Penthouse-style 3-bedroom apartment',
-      },
-    }),
-  ]);
-
-  // Create units for Downtown Plaza (8 units)
-  const downtownUnits = await Promise.all([
-    prisma.unit.create({
-      data: {
-        propertyId: property2.id,
-        name: 'Unit A101',
-        floor: 1,
-        rent: 3500,
-        bedrooms: 2,
-        bathrooms: 2,
-        sizeM2: 85,
-        photos: [],
-        status: 'OCCUPIED',
-        description: 'Premium 2-bedroom with smart home features',
-      },
-    }),
-    prisma.unit.create({
-      data: {
-        propertyId: property2.id,
-        name: 'Unit A102',
-        floor: 1,
-        rent: 3200,
-        bedrooms: 2,
-        bathrooms: 1,
-        sizeM2: 75,
-        photos: [],
-        status: 'AVAILABLE',
-        description: 'Modern 2-bedroom apartment',
-      },
-    }),
-    prisma.unit.create({
-      data: {
-        propertyId: property2.id,
-        name: 'Unit A201',
-        floor: 2,
-        rent: 4000,
         bedrooms: 3,
         bathrooms: 2,
         sizeM2: 110,
         photos: [],
-        status: 'OCCUPIED',
-        description: 'Luxury 3-bedroom with premium amenities',
-      },
-    }),
-    prisma.unit.create({
-      data: {
-        propertyId: property2.id,
-        name: 'Unit A202',
-        floor: 2,
-        rent: 3800,
-        bedrooms: 3,
-        bathrooms: 2,
-        sizeM2: 95,
-        photos: [],
         status: 'AVAILABLE',
-        description: 'Spacious 3-bedroom apartment',
+        availableFrom: lastMonthStart,
+        description: 'Luxurious 3-bedroom unit with large windows and river balcony',
       },
     }),
     prisma.unit.create({
       data: {
-        propertyId: property2.id,
-        name: 'Unit A301',
+        propertyId: property1.id,
+        name: 'Unit 303',
         floor: 3,
-        rent: 4500,
-        bedrooms: 3,
-        bathrooms: 3,
-        sizeM2: 120,
+        rent: 2600,
+        bedrooms: 2,
+        bathrooms: 1,
+        sizeM2: 85,
         photos: [],
         status: 'AVAILABLE',
-        description: 'Penthouse 3-bedroom with panoramic views',
-      },
-    }),
-    prisma.unit.create({
-      data: {
-        propertyId: property2.id,
-        name: 'Unit A302',
-        floor: 3,
-        rent: 4200,
-        bedrooms: 3,
-        bathrooms: 2,
-        sizeM2: 105,
-        photos: [],
-        status: 'AVAILABLE',
-        description: 'High-end 3-bedroom apartment',
-      },
-    }),
-    prisma.unit.create({
-      data: {
-        propertyId: property2.id,
-        name: 'Unit A401',
-        floor: 4,
-        rent: 4800,
-        bedrooms: 4,
-        bathrooms: 3,
-        sizeM2: 130,
-        photos: [],
-        status: 'AVAILABLE',
-        description: 'Executive 4-bedroom apartment',
-      },
-    }),
-    prisma.unit.create({
-      data: {
-        propertyId: property2.id,
-        name: 'Unit A402',
-        floor: 4,
-        rent: 4600,
-        bedrooms: 4,
-        bathrooms: 3,
-        sizeM2: 125,
-        photos: [],
-        status: 'AVAILABLE',
-        description: 'Premium 4-bedroom apartment',
+        availableFrom: lastMonthStart,
+        description: 'Modern 2-bedroom apartment, perfect for professionals',
       },
     }),
   ]);
 
-  // Create units for Garden Heights (3 units)
-  const gardenUnits = await Promise.all([
+  console.log('✅ Created units for Property 1 (Riverside):', riversideUnits.length);
+
+  // Create unit for Property 2 (Downtown Luxury Lofts) - 1 unit, OCCUPIED
+  const downtownUnits = await Promise.all([
     prisma.unit.create({
       data: {
-        propertyId: property3.id,
-        name: 'House 1',
-        floor: 1,
-        rent: 2800,
-        bedrooms: 3,
+        propertyId: property2.id,
+        name: 'Loft Suite',
+        floor: 5,
+        rent: 4500,
+        bedrooms: 2,
         bathrooms: 2,
         sizeM2: 120,
         photos: [],
         status: 'OCCUPIED',
-        description: 'Charming 3-bedroom house with garden',
+        description: 'Luxury loft suite with high ceilings and downtown views',
       },
     }),
+  ]);
+
+  console.log('✅ Created unit for Property 2 (Downtown Lofts):', downtownUnits.length);
+
+  // Create unit for Property 3 (Urban Gardens Townhouse) - 1 unit
+  const townhouseUnits = await Promise.all([
     prisma.unit.create({
       data: {
         propertyId: property3.id,
-        name: 'House 2',
+        name: 'Main Residence',
         floor: 1,
-        rent: 3200,
-        bedrooms: 4,
-        bathrooms: 3,
+        rent: 3800,
+        bedrooms: 3,
+        bathrooms: 2.5,
         sizeM2: 140,
         photos: [],
         status: 'AVAILABLE',
-        description: 'Spacious 4-bedroom house with private yard',
-      },
-    }),
-    prisma.unit.create({
-      data: {
-        propertyId: property3.id,
-        name: 'House 3',
-        floor: 1,
-        rent: 3000,
-        bedrooms: 3,
-        bathrooms: 2,
-        sizeM2: 130,
-        photos: [],
-        status: 'AVAILABLE',
-        description: 'Modern 3-bedroom house with deck',
+        description: 'Beautiful townhouse with private garden, perfect for families',
       },
     }),
   ]);
 
-  const allUnits = [...sunsetUnits, ...downtownUnits, ...gardenUnits];
-  console.log('✅ Created units:', allUnits.length);
+  console.log('✅ Created unit for Property 3 (Townhouse):', townhouseUnits.length);
 
-  // Create a lease contract with billing configuration
+  const allUnits = [...riversideUnits, ...downtownUnits, ...townhouseUnits];
+  console.log('✅ Created total units:', allUnits.length);
+
+  // Create a lease contract for the occupied unit (Property 2)
   const lease = await prisma.leaseContract.create({
     data: {
-      propertyId: property.id,
-      unitId: sunsetUnits[2].id, // Unit 201 (occupied unit)
+      propertyId: property2.id,
+      unitId: downtownUnits[0].id, // Loft Suite (occupied unit)
       landlordId: landlordProfile.id,
       tenantId: tenantProfile.id,
-      startDate: new Date('2024-01-01'),
-      endDate: new Date('2024-12-31'),
-      rentAmount: 3000,
-      depositAmount: 6000,
+      startDate: yearStart,
+      endDate: yearEnd,
+      rentAmount: 4500,
+      depositAmount: 9000,
       status: 'ACTIVE',
       billingDay: 1,
       billingCycleMonths: 1, // Monthly billing
       discountType: 'PERCENT',
       discountValue: 5, // 5% discount
-      signedAt: new Date('2023-12-15'),
+      signedAt: new Date(yearStart.getTime() - 7 * 24 * 60 * 60 * 1000), // Signed 7 days before lease start
+      documentUrl: 'http://localhost:9000/rentify-files/leases/lease-sample.pdf', // Placeholder PDF URL
     },
   });
 
   console.log('✅ Created lease contract:', lease.id);
 
   // Create lease fees
-  const electricityFee = await prisma.leaseFee.create({
-    data: {
-      leaseId: lease.id,
-      name: 'Electricity',
-      type: 'VARIABLE',
-      unitPrice: 0.15, // $0.15 per kWh
-      billingUnit: 'kWh',
-      isMandatory: true,
-      isActive: true,
-    },
-  });
-
-  const waterFee = await prisma.leaseFee.create({
-    data: {
-      leaseId: lease.id,
-      name: 'Water',
-      type: 'VARIABLE',
-      unitPrice: 2.5, // $2.50 per m³
-      billingUnit: 'm³',
-      isMandatory: true,
-      isActive: true,
-    },
-  });
-
-  const parkingFee = await prisma.leaseFee.create({
-    data: {
-      leaseId: lease.id,
-      name: 'Parking',
-      type: 'FIXED',
-      amount: 150, // $150 per month
-      isMandatory: false,
-      isActive: true,
-    },
-  });
-
-  const serviceFee = await prisma.leaseFee.create({
-    data: {
-      leaseId: lease.id,
-      name: 'Service Fee',
-      type: 'FIXED',
-      amount: 100, // $100 per month
-      isMandatory: true,
-      isActive: true,
-    },
-  });
-
-  console.log('✅ Created lease fees:', 4);
-
-  // Create usage records for the past 3 months
-  const usageRecords = [];
-
-  // January 2024 - Electricity
-  usageRecords.push(
-    await prisma.usageRecord.create({
+  await Promise.all([
+    prisma.leaseFee.create({
       data: {
         leaseId: lease.id,
-        feeId: electricityFee.id,
-        periodMonth: new Date('2024-01-01'),
-        usageValue: 150, // 150 kWh
-        totalAmount: 150 * 0.15, // $22.50
+        name: 'Electricity',
+        type: 'VARIABLE',
+        unitPrice: 0.15, // $0.15 per kWh
+        billingUnit: 'kWh',
+        isMandatory: true,
+        isActive: true,
       },
-    })
-  );
-
-  // January 2024 - Water
-  usageRecords.push(
-    await prisma.usageRecord.create({
+    }),
+    prisma.leaseFee.create({
       data: {
         leaseId: lease.id,
-        feeId: waterFee.id,
-        periodMonth: new Date('2024-01-01'),
-        usageValue: 15, // 15 m³
-        totalAmount: 15 * 2.5, // $37.50
+        name: 'Water',
+        type: 'VARIABLE',
+        unitPrice: 2.5, // $2.50 per m³
+        billingUnit: 'm³',
+        isMandatory: true,
+        isActive: true,
       },
-    })
-  );
-
-  // February 2024 - Electricity
-  usageRecords.push(
-    await prisma.usageRecord.create({
+    }),
+    prisma.leaseFee.create({
       data: {
         leaseId: lease.id,
-        feeId: electricityFee.id,
-        periodMonth: new Date('2024-02-01'),
-        usageValue: 180, // 180 kWh
-        totalAmount: 180 * 0.15, // $27.00
+        name: 'Parking',
+        type: 'FIXED',
+        amount: 200, // $200 per month
+        isMandatory: false,
+        isActive: true,
       },
-    })
-  );
-
-  // February 2024 - Water
-  usageRecords.push(
-    await prisma.usageRecord.create({
+    }),
+    prisma.leaseFee.create({
       data: {
         leaseId: lease.id,
-        feeId: waterFee.id,
-        periodMonth: new Date('2024-02-01'),
-        usageValue: 18, // 18 m³
-        totalAmount: 18 * 2.5, // $45.00
+        name: 'Maintenance Fee',
+        type: 'FIXED',
+        amount: 150, // $150 per month
+        isMandatory: true,
+        isActive: true,
       },
-    })
-  );
+    }),
+  ]);
 
-  console.log('✅ Created usage records:', usageRecords.length);
-
-  // Create an invoice for January 2024
-  const invoice1 = await prisma.invoice.create({
-    data: {
-      leaseId: lease.id,
-      invoiceNumber: `INV-${Date.now()}-001`,
-      periodStart: new Date('2024-01-01'),
-      periodEnd: new Date('2024-01-31'),
-      issueDate: new Date('2024-01-01'),
-      dueDate: new Date('2024-01-07'),
-      subtotal: 3310, // 3000 + 22.5 + 37.5 + 150 + 100
-      discountAmount: 165.5, // 5% of 3310
-      taxAmount: 0,
-      totalAmount: 3144.5, // 3310 - 165.5
-      status: 'PAID',
-      paidAt: new Date('2024-01-05'),
-      paidAmount: 3144.5,
-      paymentMethod: 'bank_transfer',
-      items: {
-        create: [
-          {
-            type: 'RENT',
-            name: 'Rent',
-            description: 'Monthly rent for January 2024',
-            quantity: 1,
-            unitPrice: 3000,
-            amount: 3000,
-            periodStart: new Date('2024-01-01'),
-            periodEnd: new Date('2024-01-31'),
-          },
-          {
-            feeId: electricityFee.id,
-            type: 'VARIABLE_FEE',
-            name: 'Electricity',
-            description: 'Electricity - 150 kWh',
-            quantity: 150,
-            unitPrice: 0.15,
-            amount: 22.5,
-            periodStart: new Date('2024-01-01'),
-            periodEnd: new Date('2024-01-31'),
-          },
-          {
-            feeId: waterFee.id,
-            type: 'VARIABLE_FEE',
-            name: 'Water',
-            description: 'Water - 15 m³',
-            quantity: 15,
-            unitPrice: 2.5,
-            amount: 37.5,
-            periodStart: new Date('2024-01-01'),
-            periodEnd: new Date('2024-01-31'),
-          },
-          {
-            feeId: parkingFee.id,
-            type: 'FIXED_FEE',
-            name: 'Parking',
-            description: 'Monthly parking fee',
-            quantity: 1,
-            unitPrice: 150,
-            amount: 150,
-            periodStart: new Date('2024-01-01'),
-            periodEnd: new Date('2024-01-31'),
-          },
-          {
-            feeId: serviceFee.id,
-            type: 'FIXED_FEE',
-            name: 'Service Fee',
-            description: 'Monthly service fee',
-            quantity: 1,
-            unitPrice: 100,
-            amount: 100,
-            periodStart: new Date('2024-01-01'),
-            periodEnd: new Date('2024-01-31'),
-          },
-          {
-            type: 'DISCOUNT',
-            name: 'Discount (5%)',
-            description: 'Monthly discount applied',
-            quantity: 1,
-            unitPrice: -165.5,
-            amount: -165.5,
-            periodStart: new Date('2024-01-01'),
-            periodEnd: new Date('2024-01-31'),
-          },
-        ],
-      },
-    },
-    include: {
-      items: true,
-    },
-  });
-
-  console.log('✅ Created invoice (PAID):', invoice1.invoiceNumber);
-
-  // Create a second lease with quarterly billing
-  const quarterlyLease = await prisma.leaseContract.create({
-    data: {
-      propertyId: property2.id,
-      unitId: downtownUnits[0].id, // Unit A101 (occupied unit)
-      landlordId: landlordProfile.id,
-      tenantId: tenantProfile.id,
-      startDate: new Date('2024-01-01'),
-      endDate: new Date('2024-12-31'),
-      rentAmount: 3500,
-      depositAmount: 7000,
-      status: 'ACTIVE',
-      billingDay: 1,
-      billingCycleMonths: 3, // Quarterly billing
-      discountType: 'FIXED',
-      discountValue: 500, // $500 discount per quarter
-      signedAt: new Date('2023-12-15'),
-    },
-  });
-
-  // Add a fixed fee to quarterly lease
-  const quarterlyServiceFee = await prisma.leaseFee.create({
-    data: {
-      leaseId: quarterlyLease.id,
-      name: 'Management Fee',
-      type: 'FIXED',
-      amount: 75, // $75 per month
-      isMandatory: true,
-      isActive: true,
-    },
-  });
-
-  console.log('✅ Created quarterly lease with billing:', quarterlyLease.id);
+  console.log('✅ Created lease fees for the active lease');
 
   console.log('🎉 Database seeding completed!');
 }

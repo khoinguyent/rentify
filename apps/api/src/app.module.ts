@@ -11,6 +11,7 @@ import { LeasesModule } from './leases/leases.module';
 import { BillingModule } from './billing/billing.module';
 import { DashboardModule } from './dashboard/dashboard.module';
 import { MaintenanceModule } from './maintenance/maintenance.module';
+import { StorageModule } from './storage/storage.module';
 
 @Module({
   imports: [
@@ -27,6 +28,7 @@ import { MaintenanceModule } from './maintenance/maintenance.module';
     BillingModule,
     DashboardModule,
     MaintenanceModule,
+    StorageModule,
   ],
   controllers: [AppController],
   providers: [AppService],

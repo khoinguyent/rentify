@@ -1,4 +1,5 @@
 import React from 'react';
+import { MapPin, Bed, Bath, ChefHat, Car, Edit } from 'lucide-react';
 import Link from 'next/link';
 import PropertyStatusBadge from './PropertyStatusBadge';
 
@@ -10,6 +11,13 @@ interface Property {
   state?: string;
   country?: string;
   status: string;
+  type: string;
+  furnishing?: string;
+  numBedrooms?: number;
+  numBathrooms?: number;
+  rentalPrice?: number;
+  parkingSpaces?: number;
+  description?: string;
 }
 
 interface PropertyHeaderProps {
@@ -17,33 +25,111 @@ interface PropertyHeaderProps {
 }
 
 export function PropertyHeader({ property }: PropertyHeaderProps) {
-  const fullAddress = `${property.address}${property.city ? `, ${property.city}` : ''}${property.state ? `, ${property.state}` : ''}`;
+  const formatPrice = (price?: number) => {
+    if (!price) return 'Price not available';
+    return `$${price.toLocaleString()}/month`;
+  };
+
+  const formatAddress = () => {
+    const parts = [property.address];
+    if (property.city) parts.push(property.city);
+    if (property.state) parts.push(property.state);
+    if (property.country) parts.push(property.country);
+    return parts.join(', ');
+  };
 
   return (
-    <div className="flex flex-col sm:flex-row justify-between items-start gap-4 bg-white p-6 rounded-2xl shadow">
-      <div className="flex-1">
-        <h1 className="text-2xl font-semibold text-gray-800 mb-2">{property.name}</h1>
-        <p className="text-gray-500 mb-3">{fullAddress}</p>
-        <PropertyStatusBadge status={property.status} />
-      </div>
-      <div className="flex gap-2">
+    <div>
+      {/* Property Name and Edit Button */}
+      <div className="flex items-start justify-between mb-6">
+        <div>
+          <h1 className="text-3xl md:text-4xl font-bold text-[#1E293B] mb-2">
+            {property.name}
+          </h1>
+          <p className="text-sm uppercase tracking-wider text-[#64748B] font-semibold">
+            PROPERTY DETAILS
+          </p>
+        </div>
         <Link
           href={`/properties/${property.id}/edit`}
-          className="bg-[#5BA0A4] text-white px-4 py-2 rounded-md hover:bg-[#4a8e91] transition-colors flex items-center gap-2"
+          className="inline-flex items-center gap-2 px-6 py-2.5 bg-[#1E90FF] text-white rounded-xl hover:bg-[#1a80e6] transition-all shadow-md hover:shadow-lg font-medium"
         >
-          <svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
-          </svg>
-          Edit Property
+          <Edit size={18} />
+          <span>Edit Property</span>
         </Link>
-        <button className="bg-gray-100 px-4 py-2 rounded-md hover:bg-gray-200 transition-colors text-gray-700 flex items-center gap-2">
-          <svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
-          </svg>
-          Delete
-        </button>
       </div>
+
+      {/* Status and Type Row */}
+      <div className="flex flex-wrap items-center gap-3 mb-6">
+        <PropertyStatusBadge status={property.status} />
+        <div className="flex items-center gap-2 px-3 py-1.5 bg-white rounded-lg">
+          <MapPin size={14} className="text-[#5BA0A4]" />
+          <span className="text-sm font-medium text-gray-600 capitalize">{property.type?.toLowerCase()}</span>
+        </div>
+        {property.furnishing && (
+          <div className="flex items-center gap-2 px-3 py-1.5 bg-white rounded-lg">
+            <span className="text-sm font-medium text-gray-600 capitalize">{property.furnishing.toLowerCase()}</span>
+          </div>
+        )}
+      </div>
+
+      {/* Property Details Grid */}
+      <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
+        {property.numBedrooms !== undefined && (
+          <div className="flex items-center gap-3 bg-white/70 px-4 py-3 rounded-xl">
+            <Bed size={24} className="text-[#5BA0A4]" />
+            <div>
+              <p className="text-xs text-[#64748B] uppercase tracking-wide font-semibold mb-0.5">Bedrooms</p>
+              <p className="text-lg font-bold text-[#1E293B]">{property.numBedrooms}</p>
+            </div>
+          </div>
+        )}
+        
+        {property.numBathrooms !== undefined && (
+          <div className="flex items-center gap-3 bg-white/70 px-4 py-3 rounded-xl">
+            <Bath size={24} className="text-[#5BA0A4]" />
+            <div>
+              <p className="text-xs text-[#64748B] uppercase tracking-wide font-semibold mb-0.5">Bathrooms</p>
+              <p className="text-lg font-bold text-[#1E293B]">{property.numBathrooms}</p>
+            </div>
+          </div>
+        )}
+
+        {property.parkingSpaces !== undefined && property.parkingSpaces > 0 && (
+          <div className="flex items-center gap-3 bg-white/70 px-4 py-3 rounded-xl">
+            <Car size={24} className="text-[#5BA0A4]" />
+            <div>
+              <p className="text-xs text-[#64748B] uppercase tracking-wide font-semibold mb-0.5">Parking</p>
+              <p className="text-lg font-bold text-[#1E293B]">{property.parkingSpaces}</p>
+            </div>
+          </div>
+        )}
+
+        {(property.numBedrooms !== undefined || property.numBathrooms !== undefined || property.parkingSpaces) && (
+          <div className="flex items-center gap-3 bg-white/70 px-4 py-3 rounded-xl">
+            <ChefHat size={24} className="text-[#5BA0A4]" />
+            <div>
+              <p className="text-xs text-[#64748B] uppercase tracking-wide font-semibold mb-0.5">Kitchen</p>
+            </div>
+          </div>
+        )}
+      </div>
+
+      {/* Rental Price */}
+      <div className="mb-6">
+        <div className="inline-flex items-center gap-3 bg-[#5BA0A4] px-6 py-3 rounded-xl shadow-md">
+          <span className="text-white font-bold text-2xl">
+            {formatPrice(property.rentalPrice)}
+          </span>
+        </div>
+      </div>
+
+      {/* Description */}
+      {property.description && (
+        <div className="mt-6">
+          <p className="text-[#1E293B] leading-relaxed">{property.description}</p>
+        </div>
+      )}
     </div>
   );
 }
-

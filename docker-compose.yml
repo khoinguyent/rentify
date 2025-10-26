@@ -21,7 +21,7 @@ services:
     build:
       context: .
       dockerfile: apps/api/Dockerfile
-      target: development
+      target: runtime
     container_name: rentify-api
     restart: unless-stopped
     ports:
@@ -32,7 +32,15 @@ services:
       JWT_SECRET: ${JWT_SECRET:-dev-secret-key-change-in-production}
       JWT_EXPIRATION: ${JWT_EXPIRATION:-7d}
       CORS_ORIGIN: http://localhost:3000
+      MINIO_ENDPOINT: minio
+      MINIO_PORT: 9000
+      MINIO_ACCESS_KEY: minioadmin
+      MINIO_SECRET_KEY: minioadmin123
+      MINIO_BUCKET_NAME: rentify-files
+      MINIO_USE_SSL: false
       NODE_ENV: development
+    extra_hosts:
+      - "localhost:host-gateway"
     volumes:
       - ./apps/api:/app/apps/api
       - ./packages:/app/packages
@@ -41,7 +49,8 @@ services:
     depends_on:
       postgres:
         condition: service_healthy
-    command: pnpm --filter @rentify/api dev
+      minio:
+        condition: service_healthy
 
   web:
     build:
@@ -71,6 +80,27 @@ services:
         condition: service_healthy
     command: pnpm --filter @rentify/web dev
 
+  minio:
+    image: minio/minio:latest
+    container_name: rentify-minio
+    restart: unless-stopped
+    ports:
+      - '9000:9000'
+      - '9001:9001'
+    environment:
+      MINIO_ROOT_USER: minioadmin
+      MINIO_ROOT_PASSWORD: minioadmin123
+      MINIO_SERVER_URL: http://localhost:9000
+    volumes:
+      - minio_data:/data
+    command: server /data --console-address ":9001" --address ":9000"
+    healthcheck:
+      test: ['CMD', 'curl', '-f', 'http://localhost:9000/minio/health/live']
+      interval: 30s
+      timeout: 20s
+      retries: 3
+
 volumes:
   postgres_data:
+  minio_data:
 

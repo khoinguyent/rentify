@@ -25,7 +25,14 @@ export default function EditPropertyPage() {
   useEffect(() => {
     const fetchProperty = async () => {
       try {
+        console.log('EditPage - Fetching property:', propertyId);
         const data = await getPropertyById(propertyId);
+        console.log('EditPage - Property data received:', {
+          id: data?.id,
+          name: data?.name,
+          amenitiesCount: data?.amenities?.length || 0,
+          amenities: data?.amenities
+        });
         setProperty(data);
       } catch (error) {
         console.error('Error fetching property:', error);

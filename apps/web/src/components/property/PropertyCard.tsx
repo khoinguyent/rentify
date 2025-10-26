@@ -12,7 +12,6 @@ interface Property {
   rentalPrice?: number;
   status: string;
   type?: string;
-  propertyType?: string;
   numBedrooms?: number;
   numBathrooms?: number;
   floorArea?: number;

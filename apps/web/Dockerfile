@@ -21,6 +21,14 @@ FROM base AS development
 COPY --from=dependencies /app/node_modules ./node_modules
 COPY --from=dependencies /app/apps/web/node_modules ./apps/web/node_modules
 COPY . .
+
+# Generate Prisma Client for development
+WORKDIR /app/packages/db
+RUN pnpm db:generate
+
+# Create symlink to .prisma/client in Prisma Client package
+RUN ln -sf ../.prisma/client /app/node_modules/.pnpm/@prisma+client@5.22.0_prisma@5.22.0/node_modules/@prisma/client/.prisma || true
+
 WORKDIR /app/apps/web
 EXPOSE 3000
 CMD ["pnpm", "dev"]

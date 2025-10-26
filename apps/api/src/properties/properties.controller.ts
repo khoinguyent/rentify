@@ -57,5 +57,44 @@ export class PropertiesController {
   async getAmenities() {
     return this.propertiesService.getAmenities();
   }
+
+  @Get(':id/images')
+  @ApiOperation({ summary: 'Get property images' })
+  async getPropertyImages(@Param('id') id: string) {
+    return this.propertiesService.getPropertyImages(id);
+  }
+
+  @Post(':id/images')
+  @ApiOperation({ summary: 'Add property image(s)' })
+  async addPropertyImage(
+    @Param('id') id: string,
+    @Body() imageData: any | any[]
+  ) {
+    // Check if it's an array (batch) or single object
+    if (Array.isArray(imageData)) {
+      return this.propertiesService.addPropertyImagesBatch(id, imageData);
+    } else {
+      return this.propertiesService.addPropertyImage(id, imageData);
+    }
+  }
+
+  @Patch(':id/images/:imageId')
+  @ApiOperation({ summary: 'Update property image' })
+  async updatePropertyImage(
+    @Param('id') id: string,
+    @Param('imageId') imageId: string,
+    @Body() updateData: any
+  ) {
+    return this.propertiesService.updatePropertyImage(id, imageId, updateData);
+  }
+
+  @Delete(':id/images/:imageId')
+  @ApiOperation({ summary: 'Delete property image' })
+  async deletePropertyImage(
+    @Param('id') id: string,
+    @Param('imageId') imageId: string
+  ) {
+    return this.propertiesService.deletePropertyImage(id, imageId);
+  }
 }
 
