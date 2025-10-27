@@ -282,10 +282,38 @@ export class LeasesService {
     const lease = await this.databaseService.leaseContract.findUnique({
       where: { id },
       include: {
-        property: true,
-        unit: true,
-        landlord: true,
-        tenant: true,
+        property: {
+          select: {
+            id: true,
+            name: true,
+            address: true,
+          },
+        },
+        unit: {
+          select: {
+            id: true,
+            name: true,
+          },
+        },
+        landlord: {
+          select: {
+            id: true,
+            name: true,
+          },
+        },
+        tenant: {
+          select: {
+            id: true,
+            fullName: true,
+            email: true,
+            phone: true,
+            dateOfBirth: true,
+            gender: true,
+            nationality: true,
+            idType: true,
+            idNumber: true,
+          },
+        },
         fees: true,
       },
     });
@@ -294,6 +322,26 @@ export class LeasesService {
       throw new NotFoundException('Lease not found');
     }
 
-    return lease;
+    // Serialize the lease data to ensure JSON compatibility
+    const serializedLease: any = {
+      ...lease,
+      startDate: lease.startDate instanceof Date ? lease.startDate.toISOString() : lease.startDate,
+      endDate: lease.endDate instanceof Date ? lease.endDate.toISOString() : lease.endDate,
+      signedAt: lease.signedAt instanceof Date ? lease.signedAt.toISOString() : lease.signedAt,
+      rentAmount: lease.rentAmount ? parseFloat(lease.rentAmount.toString()) : 0,
+      depositAmount: lease.depositAmount ? parseFloat(lease.depositAmount.toString()) : undefined,
+      discountValue: lease.discountValue ? parseFloat(lease.discountValue.toString()) : undefined,
+      lateFeeAmount: lease.lateFeeAmount ? parseFloat(lease.lateFeeAmount.toString()) : undefined,
+    };
+
+    // Serialize tenant data if it exists
+    if (lease.tenant && typeof lease.tenant === 'object') {
+      serializedLease.tenant = {
+        ...lease.tenant,
+        dateOfBirth: lease.tenant.dateOfBirth instanceof Date ? lease.tenant.dateOfBirth.toISOString() : lease.tenant.dateOfBirth,
+      };
+    }
+
+    return serializedLease;
   }
 }

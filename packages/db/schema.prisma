@@ -177,6 +177,10 @@ model TenantProfile {
   email            String
   phone            String?
   dateOfBirth      DateTime?
+  gender           String?
+  nationality      String?
+  idType           String?   // NATIONAL_ID, PASSPORT, VISA, DRIVERS_LICENSE, OTHER
+  idNumber         String?
   emergencyContact String?
 
   createdAt DateTime @default(now())
@@ -515,4 +519,38 @@ model InvoiceItem {
   fee     LeaseFee? @relation(fields: [feeId], references: [id], onDelete: SetNull)
 
   @@map("invoice_items")
+}
+
+// Document Management Models
+model DocumentType {
+  id          String   @id @default(cuid())
+  name        String
+  code        String   @unique
+  objectTypes String[] // ["Property", "Lease", "Tenant"]
+  isShared    Boolean  @default(false)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  documents ObjectDocument[]
+
+  @@map("document_types")
+}
+
+model ObjectDocument {
+  id             String   @id @default(cuid())
+  objectType     String   // "Property" | "Lease" | "Tenant"
+  objectId       String
+  name           String
+  url            String
+  mimeType       String
+  size           Int?
+  documentTypeId String?
+  uploadedById   String?
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+
+  documentType DocumentType? @relation(fields: [documentTypeId], references: [id], onDelete: SetNull)
+
+  @@index([objectType, objectId])
+  @@map("object_documents")
 }

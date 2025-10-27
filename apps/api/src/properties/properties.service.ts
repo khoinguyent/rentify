@@ -166,6 +166,17 @@ export class PropertiesService {
         rentAmount: parseFloat(activeLease.rentAmount.toString()),
         documentUrl: activeLease.documentUrl,
         status: activeLease.status,
+        tenantInfo: activeLease.tenant ? {
+          firstName: activeLease.tenant.fullName?.split(' ')[0] || '',
+          lastName: activeLease.tenant.fullName?.split(' ').slice(1).join(' ') || '',
+          email: activeLease.tenant.email,
+          phone: activeLease.tenant.phone || '',
+          dateOfBirth: activeLease.tenant.dateOfBirth ? new Date(activeLease.tenant.dateOfBirth).toISOString().split('T')[0] : undefined,
+          gender: activeLease.tenant.gender || '',
+          nationality: activeLease.tenant.nationality || '',
+          idType: activeLease.tenant.idType || 'NATIONAL_ID',
+          idNumber: activeLease.tenant.idNumber || '',
+        } : undefined,
       } : undefined,
     };
 

@@ -12,6 +12,7 @@ import { BillingModule } from './billing/billing.module';
 import { DashboardModule } from './dashboard/dashboard.module';
 import { MaintenanceModule } from './maintenance/maintenance.module';
 import { StorageModule } from './storage/storage.module';
+import { DocumentsModule } from './documents/documents.module';
 
 @Module({
   imports: [
@@ -29,6 +30,7 @@ import { StorageModule } from './storage/storage.module';
     DashboardModule,
     MaintenanceModule,
     StorageModule,
+    DocumentsModule,
   ],
   controllers: [AppController],
   providers: [AppService],

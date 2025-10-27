@@ -11,6 +11,7 @@ import { PropertyAmenities } from '@/components/property/PropertyAmenities';
 import { TenantContactCard } from '@/components/property/TenantContactCard';
 import { LeaseCard } from '@/components/property/LeaseCard';
 import { MobileContactBar } from '@/components/property/MobileContactBar';
+import { AddLeaseModal } from '@/components/property/AddLeaseModal';
 import { getPropertyById, Property } from '@/lib/api';
 
 export default function PropertyDetailsPage() {
@@ -23,6 +24,8 @@ export default function PropertyDetailsPage() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [isFavorite, setIsFavorite] = useState(false);
+  const [isAddLeaseModalOpen, setIsAddLeaseModalOpen] = useState(false);
+  const [currentLeaseForModal, setCurrentLeaseForModal] = useState<any>(null);
 
   useEffect(() => {
     if (status === 'unauthenticated') {
@@ -188,17 +191,31 @@ export default function PropertyDetailsPage() {
                     />
                   </div>
                   
-                  <LeaseCard lease={property.activeLease} onAddLease={() => {
-                    console.log('Add lease clicked');
-                    // TODO: Implement lease creation modal or redirect
-                  }} />
+                  <LeaseCard 
+                    lease={property.activeLease} 
+                    onAddLease={() => {
+                      setCurrentLeaseForModal(null);
+                      setIsAddLeaseModalOpen(true);
+                    }}
+                    onAddNewContract={(lease) => {
+                      setCurrentLeaseForModal(lease);
+                      setIsAddLeaseModalOpen(true);
+                    }}
+                  />
                 </div>
               ) : (
                 <div className="lg:col-span-2">
-                  <LeaseCard lease={property.activeLease} onAddLease={() => {
-                    console.log('Add lease clicked');
-                    // TODO: Implement lease creation modal or redirect
-                  }} />
+                  <LeaseCard 
+                    lease={property.activeLease} 
+                    onAddLease={() => {
+                      setCurrentLeaseForModal(null);
+                      setIsAddLeaseModalOpen(true);
+                    }}
+                    onAddNewContract={(lease) => {
+                      setCurrentLeaseForModal(lease);
+                      setIsAddLeaseModalOpen(true);
+                    }}
+                  />
                 </div>
               )}
             </div>
@@ -212,6 +229,25 @@ export default function PropertyDetailsPage() {
             onContact={handleContact}
             onFavorite={handleFavorite}
             isFavorite={isFavorite}
+          />
+        )}
+
+        {/* Add Lease Modal */}
+        {property && (
+          <AddLeaseModal
+            property={property}
+            isOpen={isAddLeaseModalOpen}
+            onClose={() => {
+              setIsAddLeaseModalOpen(false);
+              setCurrentLeaseForModal(null);
+            }}
+            currentLease={currentLeaseForModal}
+            onSuccess={() => {
+              // Reload the property data
+              getPropertyById(propertyId).then(data => {
+                if (data) setProperty(data);
+              });
+            }}
           />
         )}
       </div>

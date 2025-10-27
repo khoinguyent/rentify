@@ -6,6 +6,27 @@ const prisma = new PrismaClient();
 async function main() {
   console.log('🌱 Starting database seeding...');
 
+  // Seed document types
+  console.log('📄 Seeding document types...');
+  const documentTypes = [
+    { name: 'Contract', code: 'LEASE_CONTRACT', objectTypes: ['Lease'], isShared: false },
+    { name: 'Appendix', code: 'LEASE_APPENDIX', objectTypes: ['Lease'], isShared: false },
+    { name: 'Passport', code: 'TENANT_PASSPORT', objectTypes: ['Tenant'], isShared: false },
+    { name: 'Visa', code: 'TENANT_VISA', objectTypes: ['Tenant'], isShared: false },
+    { name: 'Driver License', code: 'TENANT_DRIVER_LICENSE', objectTypes: ['Tenant'], isShared: false },
+    { name: 'Proof of Address', code: 'DOC_PROOF_ADDRESS', objectTypes: ['Lease', 'Tenant'], isShared: true },
+    { name: 'Other', code: 'DOC_OTHER', objectTypes: [], isShared: true },
+  ];
+
+  for (const type of documentTypes) {
+    await prisma.documentType.upsert({
+      where: { code: type.code },
+      update: {},
+      create: type,
+    });
+  }
+  console.log('✅ Seeded document types');
+
   // Create admin user
   const adminPassword = await bcrypt.hash('admin123', 10);
   const admin = await prisma.user.upsert({

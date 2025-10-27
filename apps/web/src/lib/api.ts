@@ -63,6 +63,17 @@ export interface Property {
     rentAmount: number;
     documentUrl?: string | null;
     status: string;
+    tenantInfo?: {
+      firstName: string;
+      lastName: string;
+      email: string;
+      phone: string;
+      dateOfBirth?: string;
+      gender?: string;
+      nationality?: string;
+      idType?: string;
+      idNumber?: string;
+    };
   };
 }
 

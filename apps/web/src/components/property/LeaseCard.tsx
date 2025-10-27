@@ -9,11 +9,23 @@ interface LeaseCardProps {
     rentAmount: number;
     documentUrl?: string | null;
     status: string;
+    tenantInfo?: {
+      firstName: string;
+      lastName: string;
+      email: string;
+      phone: string;
+      dateOfBirth?: string;
+      gender?: string;
+      nationality?: string;
+      idType?: string;
+      idNumber?: string;
+    };
   };
   onAddLease?: () => void;
+  onAddNewContract?: (lease: any) => void;
 }
 
-export function LeaseCard({ lease, onAddLease }: LeaseCardProps) {
+export function LeaseCard({ lease, onAddLease, onAddNewContract }: LeaseCardProps) {
 
   const formatDate = (dateString: string) => {
     try {
@@ -114,6 +126,19 @@ export function LeaseCard({ lease, onAddLease }: LeaseCardProps) {
               </div>
             </div>
           </div>
+
+          {/* Add New Contract Button */}
+          {onAddNewContract && lease && lease.status === 'ACTIVE' && (
+            <div className="border-t border-[#E9F5F6] pt-4 mt-4">
+              <button
+                onClick={() => onAddNewContract(lease)}
+                className="w-full inline-flex items-center justify-center gap-2 px-6 py-3 bg-[#5BA0A4] text-white rounded-xl hover:bg-[#4a8e91] transition-colors font-medium"
+              >
+                <Plus size={20} />
+                <span>Add New Lease Contract</span>
+              </button>
+            </div>
+          )}
         </div>
         )}
       </div>
