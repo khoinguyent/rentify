@@ -66,6 +66,15 @@ interface DocumentType {
   code: string;
 }
 
+interface LeaseFee {
+  id: string;
+  name: string;
+  type: string;
+  amount: string | null;
+  unitPrice: string | null;
+  billingUnit: string | null;
+}
+
 export default function LeaseDetailPage() {
   const params = useParams();
   const router = useRouter();
@@ -73,6 +82,7 @@ export default function LeaseDetailPage() {
   
   const [lease, setLease] = useState<Lease | null>(null);
   const [documents, setDocuments] = useState<Document[]>([]);
+  const [fees, setFees] = useState<LeaseFee[]>([]);
   const [loading, setLoading] = useState(true);
   const [activeTab, setActiveTab] = useState<'info' | 'documents'>('documents');
   const [documentTypes, setDocumentTypes] = useState<DocumentType[]>([]);
@@ -90,10 +100,11 @@ export default function LeaseDetailPage() {
   useEffect(() => {
     const fetchLeaseData = async () => {
       try {
-        const [leaseResponse, docsResponse, typesResponse] = await Promise.all([
+        const [leaseResponse, docsResponse, typesResponse, feesResponse] = await Promise.all([
           fetch(`/api/leases/${params.id}`, { credentials: 'include' }),
           fetch(`/api/documents/Lease/${params.id}`, { credentials: 'include' }),
           fetch(`/api/documents/types/Lease`, { credentials: 'include' }),
+          fetch(`/api/leases/${params.id}/fees`, { credentials: 'include' }),
         ]);
 
         if (leaseResponse.ok) {
@@ -110,6 +121,11 @@ export default function LeaseDetailPage() {
           const typesData = await typesResponse.json();
           console.log('Document types loaded:', typesData);
           setDocumentTypes(typesData || []);
+        }
+
+        if (feesResponse.ok) {
+          const feesData = await feesResponse.json();
+          setFees(feesData || []);
         }
       } catch (error) {
         console.error('Error fetching lease data:', error);
@@ -321,40 +337,69 @@ export default function LeaseDetailPage() {
           <div className="p-6">
             {activeTab === 'info' && (
               <div className="space-y-6">
-                {/* Basic Info */}
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                  <div className="flex items-start gap-3">
-                    <Calendar className="text-[#5BA0A4] mt-1" size={20} />
-                    <div>
-                      <p className="text-sm text-gray-500">Lease Period</p>
-                      <p className="font-medium">{formatDate(lease.startDate)} - {formatDate(lease.endDate)}</p>
-                    </div>
+                {/* Property & Unit */}
+                <div>
+                  <div className="flex items-center gap-2 mb-4">
+                    <Home className="text-[#5BA0A4]" size={20} />
+                    <h3 className="text-lg font-semibold text-gray-900">Property & Unit</h3>
                   </div>
-                  <div className="flex items-start gap-3">
-                    <DollarSign className="text-[#5BA0A4] mt-1" size={20} />
-                    <div>
-                      <p className="text-sm text-gray-500">Monthly Rent</p>
-                      <p className="font-medium">{formatCurrency(lease.rentAmount)}</p>
-                    </div>
-                  </div>
-                  {lease.depositAmount && (
-                    <div className="flex items-start gap-3">
-                      <DollarSign className="text-[#5BA0A4] mt-1" size={20} />
+                  <div className="flex items-center justify-between p-4 bg-gray-50 rounded-lg hover:bg-gray-100 transition-colors">
+                    <div className="flex items-center gap-3">
+                      <Building className="text-[#5BA0A4]" size={24} />
                       <div>
-                        <p className="text-sm text-gray-500">Security Deposit</p>
-                        <p className="font-medium">{formatCurrency(lease.depositAmount)}</p>
+                        <p className="font-medium text-gray-900">{lease.property.name}</p>
+                        <p className="text-sm text-gray-500">Unit: {lease.unit.name}</p>
+                        {lease.property.address && (
+                          <p className="text-sm text-gray-500">{lease.property.address}</p>
+                        )}
                       </div>
                     </div>
-                  )}
-                  {lease.billingDay && (
+                    <button
+                      onClick={() => router.push(`/properties/${lease.property.id}`)}
+                      className="flex items-center gap-2 text-[#5BA0A4] hover:text-[#4a8e91] font-medium"
+                    >
+                      View Property
+                      <ExternalLink size={16} />
+                    </button>
+                  </div>
+                </div>
+
+                {/* Basic Info */}
+                <div className="border-t border-gray-200 pt-6">
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                     <div className="flex items-start gap-3">
                       <Calendar className="text-[#5BA0A4] mt-1" size={20} />
                       <div>
-                        <p className="text-sm text-gray-500">Billing Cycle</p>
-                        <p className="font-medium">Day {lease.billingDay} of every {lease.billingCycleMonths || 1} month(s)</p>
+                        <p className="text-sm text-gray-500">Lease Period</p>
+                        <p className="font-medium">{formatDate(lease.startDate)} - {formatDate(lease.endDate)}</p>
                       </div>
                     </div>
-                  )}
+                    <div className="flex items-start gap-3">
+                      <DollarSign className="text-[#5BA0A4] mt-1" size={20} />
+                      <div>
+                        <p className="text-sm text-gray-500">Monthly Rent</p>
+                        <p className="font-medium">{formatCurrency(lease.rentAmount)}</p>
+                      </div>
+                    </div>
+                    {lease.depositAmount && (
+                      <div className="flex items-start gap-3">
+                        <DollarSign className="text-[#5BA0A4] mt-1" size={20} />
+                        <div>
+                          <p className="text-sm text-gray-500">Security Deposit</p>
+                          <p className="font-medium">{formatCurrency(lease.depositAmount)}</p>
+                        </div>
+                      </div>
+                    )}
+                    {lease.billingDay && (
+                      <div className="flex items-start gap-3">
+                        <Calendar className="text-[#5BA0A4] mt-1" size={20} />
+                        <div>
+                          <p className="text-sm text-gray-500">Billing Cycle</p>
+                          <p className="font-medium">Day {lease.billingDay} of every {lease.billingCycleMonths || 1} month(s)</p>
+                        </div>
+                      </div>
+                    )}
+                  </div>
                 </div>
 
                 {/* Tenant Info */}
@@ -409,32 +454,75 @@ export default function LeaseDetailPage() {
                   </div>
                 </div>
 
-                {/* Property & Unit */}
-                <div className="border-t border-gray-200 pt-6">
-                  <div className="flex items-center gap-2 mb-4">
-                    <Home className="text-[#5BA0A4]" size={20} />
-                    <h3 className="text-lg font-semibold text-gray-900">Property & Unit</h3>
-                  </div>
-                  <div className="flex items-center justify-between p-4 bg-gray-50 rounded-lg hover:bg-gray-100 transition-colors">
-                    <div className="flex items-center gap-3">
-                      <Building className="text-[#5BA0A4]" size={24} />
-                      <div>
-                        <p className="font-medium text-gray-900">{lease.property.name}</p>
-                        <p className="text-sm text-gray-500">Unit: {lease.unit.name}</p>
-                        {lease.property.address && (
-                          <p className="text-sm text-gray-500">{lease.property.address}</p>
-                        )}
-                      </div>
+                {/* Lease Fees */}
+                {fees.length > 0 && (
+                  <div className="border-t border-gray-200 pt-6">
+                    <div className="flex items-center gap-2 mb-4">
+                      <DollarSign className="text-[#5BA0A4]" size={20} />
+                      <h3 className="text-lg font-semibold text-gray-900">Additional Fees</h3>
                     </div>
-                    <button
-                      onClick={() => router.push(`/properties/${lease.property.id}`)}
-                      className="flex items-center gap-2 text-[#5BA0A4] hover:text-[#4a8e91] font-medium"
-                    >
-                      View Property
-                      <ExternalLink size={16} />
-                    </button>
+                    <div className="space-y-3">
+                      {fees.map((fee) => (
+                        <div
+                          key={fee.id}
+                          className="flex items-center justify-between p-4 bg-gray-50 rounded-lg"
+                        >
+                          <div className="flex-1">
+                            <p className="font-medium text-gray-900">{fee.name}</p>
+                            <p className="text-xs text-gray-400 mt-1">
+                              Type: {fee.type === 'FIXED' ? 'Fixed Monthly' : 'Variable (Usage-based)'}
+                              {fee.billingUnit && ` • Unit: ${fee.billingUnit}`}
+                            </p>
+                          </div>
+                          <div className="text-right">
+                            {fee.amount ? (
+                              <p className="text-lg font-semibold text-gray-900">
+                                +{formatCurrency(Number(fee.amount))}
+                                {fee.type === 'VARIABLE' && fee.unitPrice && (
+                                  <span className="text-sm text-gray-500 ml-1">
+                                    /{fee.billingUnit}
+                                  </span>
+                                )}
+                              </p>
+                            ) : fee.unitPrice ? (
+                              <p className="text-lg font-semibold text-gray-900">
+                                {formatCurrency(Number(fee.unitPrice))}/{fee.billingUnit}
+                              </p>
+                            ) : (
+                              <p className="text-lg font-semibold text-gray-900">
+                                Variable
+                              </p>
+                            )}
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                    {fees.some(f => f.amount) && (
+                      <div className="mt-4 p-4 bg-[#5BA0A4]/10 rounded-lg border border-[#5BA0A4]/20">
+                        <div className="flex items-center justify-between">
+                          <p className="font-semibold text-gray-900">Monthly Total</p>
+                          <p className="text-xl font-bold text-[#5BA0A4]">
+                            {formatCurrency(
+                              lease.rentAmount +
+                              fees.reduce((sum, fee) => sum + (fee.amount ? Number(fee.amount) : 0), 0)
+                            )}
+                            {fees.some(f => f.type === 'VARIABLE') && (
+                              <span className="ml-1 text-lg">++</span>
+                            )}
+                          </p>
+                        </div>
+                        <p className="text-xs text-gray-500 mt-1">
+                          Base Rent: {formatCurrency(lease.rentAmount)} + Fees: {formatCurrency(
+                            fees.reduce((sum, fee) => sum + (fee.amount ? Number(fee.amount) : 0), 0)
+                          )}
+                          {fees.some(f => f.type === 'VARIABLE') && (
+                            <span className="ml-1">+ variable charges</span>
+                          )}
+                        </p>
+                      </div>
+                    )}
                   </div>
-                </div>
+                )}
               </div>
             )}
 

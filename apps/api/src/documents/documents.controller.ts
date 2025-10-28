@@ -1,4 +1,4 @@
-import { Controller, Post, Get, Delete, Param, UploadedFile, UseInterceptors, Body, UseGuards, Request } from '@nestjs/common';
+import { Controller, Post, Get, Delete, Param, UploadedFile, UseInterceptors, Body, UseGuards, Request, Put } from '@nestjs/common';
 import { FileInterceptor } from '@nestjs/platform-express';
 import { ApiTags, ApiOperation, ApiResponse, ApiConsumes, ApiBody } from '@nestjs/swagger';
 import { DocumentsService } from './documents.service';
@@ -71,6 +71,33 @@ export class DocumentsController {
   @ApiResponse({ status: 200, description: 'Documents retrieved successfully' })
   async listDocuments(@Param('objectType') objectType: string, @Param('objectId') objectId: string) {
     return this.documentsService.getDocuments(objectType, objectId);
+  }
+
+  @Post()
+  @ApiOperation({ summary: 'Create a document record' })
+  @ApiResponse({ status: 201, description: 'Document created successfully' })
+  async createDocument(
+    @Body() body: {
+      objectType: string;
+      objectId: string;
+      name: string;
+      url: string;
+      mimeType: string;
+      size?: number;
+      documentTypeId?: string;
+    },
+    @Request() req: any,
+  ) {
+    return this.documentsService.createDocument({
+      objectType: body.objectType,
+      objectId: body.objectId,
+      url: body.url,
+      name: body.name,
+      mimeType: body.mimeType,
+      size: body.size,
+      documentTypeId: body.documentTypeId || undefined,
+      uploadedById: req.user.id,
+    });
   }
 
   @Delete(':id')

@@ -13,6 +13,7 @@ import { DashboardModule } from './dashboard/dashboard.module';
 import { MaintenanceModule } from './maintenance/maintenance.module';
 import { StorageModule } from './storage/storage.module';
 import { DocumentsModule } from './documents/documents.module';
+import { TenantsModule } from './tenants/tenants.module';
 
 @Module({
   imports: [
@@ -31,6 +32,7 @@ import { DocumentsModule } from './documents/documents.module';
     MaintenanceModule,
     StorageModule,
     DocumentsModule,
+    TenantsModule,
   ],
   controllers: [AppController],
   providers: [AppService],

@@ -8,6 +8,7 @@ import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { signIn } from 'next-auth/react';
 import { useRouter } from 'next/navigation';
+import { useSession } from 'next-auth/react';
 import { Logo } from '@/components/Logo';
 
 export default function LoginPage() {
@@ -16,6 +17,7 @@ export default function LoginPage() {
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState('');
   const router = useRouter();
+  const { data: session } = useSession();
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -27,14 +29,22 @@ export default function LoginPage() {
         email: email.trim(),
         password,
         redirect: false,
-        callbackUrl: '/dashboard',
       });
 
       if (result?.error || result?.ok === false) {
         setError('Invalid email or password');
-      } else {
-        const target = result?.url ?? '/dashboard';
-        router.push(target);
+      } else if (result?.ok) {
+        // Fetch updated session to get user role
+        const sessionResponse = await fetch('/api/auth/session');
+        const sessionData = await sessionResponse.json();
+        const userRole = sessionData?.user?.role;
+        
+        // Redirect based on user role
+        if (userRole === 'TENANT') {
+          router.push('/tenant/dashboard');
+        } else {
+          router.push('/dashboard');
+        }
       }
     } catch (error) {
       setError('Something went wrong. Please try again.');

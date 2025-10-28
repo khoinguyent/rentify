@@ -46,6 +46,12 @@ const LeaseIcon = ({ className }: { className?: string }) => (
   </svg>
 );
 
+const CreditCardIcon = ({ className }: { className?: string }) => (
+  <svg className={className} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z" />
+  </svg>
+);
+
 // Menu configuration by role
 export const menuConfig: Record<string, MenuItem[]> = {
   LANDLORD: [
@@ -73,7 +79,7 @@ export const menuConfig: Record<string, MenuItem[]> = {
     {
       id: 'maintenance',
       label: 'Maintenance Tickets',
-      href: '/dashboard/maintenance',
+      href: '/maintenance',
       icon: MaintenanceIcon,
       roles: ['LANDLORD', 'ADMIN'],
     },
@@ -89,15 +95,29 @@ export const menuConfig: Record<string, MenuItem[]> = {
     {
       id: 'dashboard',
       label: 'Dashboard',
-      href: '/dashboard',
+      href: '/tenant/dashboard',
       icon: DashboardIcon,
       roles: ['TENANT'],
     },
     {
-      id: 'activities',
-      label: 'My Activities',
-      href: '/dashboard/activities',
-      icon: ActivitiesIcon,
+      id: 'leases',
+      label: 'My Leases',
+      href: '/tenant/leases',
+      icon: LeaseIcon,
+      roles: ['TENANT'],
+    },
+    {
+      id: 'payments',
+      label: 'Payments',
+      href: '/tenant/payments',
+      icon: CreditCardIcon,
+      roles: ['TENANT'],
+    },
+    {
+      id: 'maintenance',
+      label: 'Maintenance',
+      href: '/tenant/maintenance',
+      icon: MaintenanceIcon,
       roles: ['TENANT'],
     },
   ],
@@ -126,7 +146,7 @@ export const menuConfig: Record<string, MenuItem[]> = {
     {
       id: 'maintenance',
       label: 'Maintenance Tickets',
-      href: '/dashboard/maintenance',
+      href: '/maintenance',
       icon: MaintenanceIcon,
       roles: ['ADMIN'],
     },

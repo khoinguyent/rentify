@@ -140,8 +140,8 @@ export class StorageService {
   async getFileUrl(objectName: string, expiry: number = 7 * 24 * 60 * 60): Promise<string> {
     try {
       console.log(`Generating public URL for: ${objectName}`);
-      // Return a direct public URL since the bucket has public read access
-      const publicUrl = `http://localhost:9000/${this.bucketName}/${objectName}`;
+      // Return a URL proxied through Next.js
+      const publicUrl = `http://localhost:3000/api/images/${objectName}`;
       
       console.log(`Public URL: ${publicUrl}`);
       return publicUrl;

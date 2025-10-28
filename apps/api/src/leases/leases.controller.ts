@@ -56,6 +56,30 @@ export class LeasesController {
     });
   }
 
+  @Get(':id/fees')
+  @ApiOperation({ summary: 'Get lease fees' })
+  @ApiResponse({ status: 200, description: 'Lease fees retrieved successfully' })
+  async getLeaseFees(@Param('id') id: string) {
+    const fees = await this.databaseService.leaseFee.findMany({
+      where: {
+        leaseId: id,
+        isActive: true,
+      },
+      orderBy: {
+        createdAt: 'asc',
+      },
+    });
+
+    return fees.map(fee => ({
+      id: fee.id,
+      name: fee.name,
+      type: fee.type,
+      amount: fee.amount ? fee.amount.toString() : null,
+      unitPrice: fee.unitPrice ? fee.unitPrice.toString() : null,
+      billingUnit: fee.billingUnit,
+    }));
+  }
+
   @Get(':id')
   @ApiOperation({ summary: 'Get lease by ID' })
   @ApiResponse({ status: 200, description: 'Lease retrieved successfully' })

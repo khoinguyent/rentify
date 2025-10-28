@@ -22,8 +22,14 @@ export default function DashboardPage() {
   useEffect(() => {
     if (status === 'unauthenticated') {
       router.push('/auth/login');
+    } else if (status === 'authenticated' && session?.user) {
+      // Redirect tenants to their own dashboard
+      const userRole = (session?.user as any)?.role;
+      if (userRole === 'TENANT') {
+        router.push('/tenant/dashboard');
+      }
     }
-  }, [status, router]);
+  }, [status, session, router]);
 
   // For now, we'll use the seeded landlord ID
   // In a real app, this would come from the user's profile or session

@@ -14,6 +14,9 @@ export async function POST(request: NextRequest) {
 
     const formData = await request.formData();
     const folder = formData.get('folder') as string || 'general';
+    const objectType = formData.get('objectType') as string;
+    const objectId = formData.get('objectId') as string;
+    const name = formData.get('name') as string;
 
     const response = await fetch(`${API_BASE_URL}/storage/upload?folder=${encodeURIComponent(folder)}`, {
       method: 'POST',
@@ -33,6 +36,33 @@ export async function POST(request: NextRequest) {
     }
 
     const data = await response.json();
+    
+    // Create ObjectDocument if objectType and objectId are provided
+    if (objectType && objectId && data.key) {
+      const uploadData = {
+        objectType,
+        objectId,
+        name: name || data.key,
+        url: data.url,
+        mimeType: data.contentType || 'application/octet-stream',
+        size: data.size || 0,
+      };
+
+      const docResponse = await fetch(`${API_BASE_URL}/documents`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${session.nestjsToken}`,
+        },
+        body: JSON.stringify(uploadData),
+      });
+
+      if (docResponse.ok) {
+        const docData = await docResponse.json();
+        return NextResponse.json({ ...data, documentId: docData.id });
+      }
+    }
+
     return NextResponse.json(data);
   } catch (error) {
     console.error('Error uploading file:', error);
