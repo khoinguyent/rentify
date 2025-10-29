@@ -44,8 +44,9 @@ export async function POST(request: NextRequest) {
         objectId,
         name: name || data.key,
         url: data.url,
-        mimeType: data.contentType || 'application/octet-stream',
-        size: data.size || 0,
+        fileUrl: data.url, // Store the direct file URL from storage provider
+        mimeType: data.mimeType || 'application/octet-stream',
+        size: data.fileSize || 0,
       };
 
       const docResponse = await fetch(`${API_BASE_URL}/documents`, {

@@ -1,3 +1,10 @@
+# Rentify Docker Compose
+# 
+# Make sure to copy env.example to .env and configure the storage provider settings:
+# cp env.example .env
+#
+# Storage providers supported: minio (default), s3, r2
+
 services:
   postgres:
     image: postgres:16-alpine
@@ -32,12 +39,28 @@ services:
       JWT_SECRET: ${JWT_SECRET:-dev-secret-key-change-in-production}
       JWT_EXPIRATION: ${JWT_EXPIRATION:-7d}
       CORS_ORIGIN: http://localhost:3000
-      MINIO_ENDPOINT: minio
-      MINIO_PORT: 9000
-      MINIO_ACCESS_KEY: minioadmin
-      MINIO_SECRET_KEY: minioadmin123
-      MINIO_BUCKET_NAME: rentify-files
-      MINIO_USE_SSL: false
+      # Storage Provider Configuration
+      STORAGE_PROVIDER: ${STORAGE_PROVIDER:-minio}
+      # MinIO Configuration
+      MINIO_ENDPOINT: ${MINIO_ENDPOINT:-minio}
+      MINIO_PORT: ${MINIO_PORT:-9000}
+      MINIO_ACCESS_KEY: ${MINIO_ACCESS_KEY:-minioadmin}
+      MINIO_SECRET_KEY: ${MINIO_SECRET_KEY:-minioadmin123}
+      MINIO_BUCKET_NAME: ${MINIO_BUCKET_NAME:-rentify-files}
+      MINIO_USE_SSL: ${MINIO_USE_SSL:-false}
+      MINIO_PUBLIC_URL: ${MINIO_PUBLIC_URL:-http://localhost:3000/api/images}
+      # AWS S3 Configuration
+      AWS_REGION: ${AWS_REGION:-us-east-1}
+      AWS_ACCESS_KEY_ID: ${AWS_ACCESS_KEY_ID:-}
+      AWS_SECRET_ACCESS_KEY: ${AWS_SECRET_ACCESS_KEY:-}
+      AWS_S3_BUCKET: ${AWS_S3_BUCKET:-}
+      AWS_S3_PUBLIC_URL: ${AWS_S3_PUBLIC_URL:-}
+      # Cloudflare R2 Configuration
+      CLOUDFLARE_ACCOUNT_ID: ${CLOUDFLARE_ACCOUNT_ID:-}
+      CLOUDFLARE_R2_ACCESS_KEY_ID: ${CLOUDFLARE_R2_ACCESS_KEY_ID:-}
+      CLOUDFLARE_R2_SECRET_ACCESS_KEY: ${CLOUDFLARE_R2_SECRET_ACCESS_KEY:-}
+      CLOUDFLARE_R2_BUCKET: ${CLOUDFLARE_R2_BUCKET:-}
+      CLOUDFLARE_R2_PUBLIC_URL: ${CLOUDFLARE_R2_PUBLIC_URL:-}
       NODE_ENV: development
     extra_hosts:
       - "localhost:host-gateway"
@@ -85,12 +108,12 @@ services:
     container_name: rentify-minio
     restart: unless-stopped
     ports:
-      - '9000:9000'
-      - '9001:9001'
+      - '${MINIO_PORT:-9000}:9000'
+      - '${MINIO_CONSOLE_PORT:-9001}:9001'
     environment:
-      MINIO_ROOT_USER: minioadmin
-      MINIO_ROOT_PASSWORD: minioadmin123
-      MINIO_SERVER_URL: http://localhost:9000
+      MINIO_ROOT_USER: ${MINIO_ACCESS_KEY:-minioadmin}
+      MINIO_ROOT_PASSWORD: ${MINIO_SECRET_KEY:-minioadmin123}
+      MINIO_SERVER_URL: ${MINIO_SERVER_URL:-http://localhost:9000}
     volumes:
       - minio_data:/data
     command: server /data --console-address ":9001" --address ":9000"

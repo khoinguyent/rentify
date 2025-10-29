@@ -1,0 +1,40 @@
+export interface AmenityItem { id: string; name: string; icon?: string; description?: string }
+
+// Unified fallback amenities list used by both Property and Units editors
+export const AMENITIES_FALLBACK: AmenityItem[] = [
+  { name: 'Heating', description: 'Central heating system', icon: '🔥', id: 'amenity-heating' },
+  { name: 'WiFi', description: 'High-speed internet included', icon: '📶', id: 'amenity-wifi' },
+  { name: 'Refrigerator', description: 'Full-size refrigerator', icon: '🧊', id: 'amenity-fridge' },
+  { name: 'Microwave', description: 'Microwave oven', icon: '📡', id: 'amenity-microwave' },
+  { name: 'Kitchen', description: 'Fully equipped kitchen', icon: '🍳', id: 'amenity-kitchen' },
+  { name: 'Coffee Maker', description: 'Coffee machine', icon: '☕', id: 'amenity-coffee' },
+  { name: 'Air Conditioning', description: 'Central air conditioning', icon: '❄️', id: 'amenity-ac' },
+  { name: 'Dishwasher', description: 'Built-in dishwasher', icon: '🍽️', id: 'amenity-dishwasher' },
+  { name: 'Dryer', description: 'Clothes dryer', icon: '🌪️', id: 'amenity-dryer' },
+  { name: 'Washing Machine', description: 'In-unit washer', icon: '🧺', id: 'amenity-washer' },
+  { name: 'Hot Water', description: 'Reliable hot water', icon: '♨️', id: 'amenity-hotwater' },
+  { name: 'Sound System', description: 'Audio system', icon: '🔊', id: 'amenity-sound' },
+  { name: 'TV', description: 'Smart TV with streaming', icon: '📺', id: 'amenity-tv' },
+  { name: 'Game Console', description: 'Gaming console', icon: '🎮', id: 'amenity-game' },
+  { name: 'Parking', description: 'On-site parking', icon: '🅿️', id: 'amenity-parking' },
+  { name: 'Balcony', description: 'Private balcony', icon: '🏠', id: 'amenity-balcony' },
+  { name: 'Garden', description: 'Private garden', icon: '🌱', id: 'amenity-garden' },
+  { name: 'Security System', description: 'Security cameras', icon: '🔒', id: 'amenity-security' },
+  { name: 'Elevator', description: 'Building elevator', icon: '🛗', id: 'amenity-elevator' },
+  { name: 'Concierge', description: '24/7 concierge service', icon: '🏛️', id: 'amenity-concierge' },
+  { name: 'Sauna', description: 'Sauna facility', icon: '🧖', id: 'amenity-sauna' },
+  { name: 'Pet Friendly', description: 'Pets allowed', icon: '🐕', id: 'amenity-pet' },
+  { name: 'Wheelchair Accessible', description: 'ADA compliant', icon: '♿', id: 'amenity-wheelchair' },
+  { name: 'Child Friendly', description: 'Suitable for children', icon: '👶', id: 'amenity-child' },
+  { name: 'Carbon Monoxide Detector', description: 'CO detection', icon: '⚠️', id: 'amenity-co' },
+  { name: 'BBQ Grill', description: 'Barbecue grill', icon: '🔥', id: 'amenity-bbq' },
+  { name: 'High Chair', description: 'Baby high chair', icon: '🪑', id: 'amenity-highchair' },
+  { name: 'Dedicated Workspace', description: 'Home office space', icon: '💻', id: 'amenity-workspace' },
+  { name: 'Printer', description: 'Printer available', icon: '🖨️', id: 'amenity-printer' },
+  { name: 'Wine Cellar', description: 'Wine storage', icon: '🍷', id: 'amenity-wine' },
+  { name: 'Swimming Pool', description: 'Shared swimming pool', icon: '🏊', id: 'amenity-pool' },
+  { name: 'Fireplace', description: 'Gas or electric fireplace', icon: '🔥', id: 'amenity-fireplace' },
+  { name: 'Patio', description: 'Outdoor patio', icon: '🏡', id: 'amenity-patio' },
+];
+
+

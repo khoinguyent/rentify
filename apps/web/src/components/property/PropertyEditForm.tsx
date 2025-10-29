@@ -11,6 +11,7 @@ import {
 } from '@heroicons/react/24/outline';
 import PropertyAmenitiesTab from './PropertyAmenitiesTab';
 import PropertyImagesTab from './PropertyImagesTab';
+import UnitsTab from './UnitsTab';
 
 interface Property {
   id: string;
@@ -42,13 +43,17 @@ interface Property {
     isPrimary: boolean;
     sortOrder: number;
   }>;
+  // Multi-unit config
+  isMultiUnit?: boolean;
+  allowWholeRent?: boolean;
+  wholeRentPrice?: number | null;
 }
 
 interface PropertyEditFormProps {
   property: Property;
 }
 
-type TabType = 'basic' | 'amenities' | 'images';
+type TabType = 'basic' | 'amenities' | 'images' | 'units';
 
 export function PropertyEditForm({ property }: PropertyEditFormProps) {
   const router = useRouter();
@@ -71,6 +76,9 @@ export function PropertyEditForm({ property }: PropertyEditFormProps) {
     parkingSpaces: property.parkingSpaces?.toString() || '',
     availableFrom: property.availableFrom || '',
     description: property.description || '',
+    isMultiUnit: property.isMultiUnit ?? false,
+    allowWholeRent: property.allowWholeRent ?? false,
+    wholeRentPrice: property.wholeRentPrice?.toString() || '',
   });
   const [selectedAmenities, setSelectedAmenities] = useState<string[]>(() => {
     console.log('PropertyEditForm - property.amenities:', property.amenities);
@@ -79,16 +87,45 @@ export function PropertyEditForm({ property }: PropertyEditFormProps) {
     console.log('PropertyEditForm - selectedAmenities initialized with:', amenityIds);
     return amenityIds;
   });
+  const selectedAmenityNames = (property.amenities || []).map((a: any) => a.amenity?.name || a.name).filter(Boolean);
   const [images, setImages] = useState(property.images || []);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState(false);
   const imagesTabRef = useRef<any>(null);
+  const [unitsInitial, setUnitsInitial] = useState<any[]>([]);
+
+  // Fetch existing units for this property to prefill Units tab
+  useEffect(() => {
+    const fetchUnits = async () => {
+      try {
+        const res = await fetch(`/api/properties/${property.id}/units`, { credentials: 'include' });
+        if (!res.ok) return;
+        const data = await res.json();
+        // Map API units to UnitsTab shape
+        const mapped = (Array.isArray(data) ? data : []).map((u: any) => ({
+          id: u.id,
+          name: u.name || '',
+          floor: u.floor ?? '',
+          area: u.area ?? '',
+          bedrooms: u.bedrooms ?? '',
+          bathrooms: u.bathrooms ?? '',
+          kitchen: !!u.kitchen,
+          balcony: !!u.balcony,
+          amenities: Array.isArray(u.amenities) ? u.amenities.map((a: any) => a.id || a) : [],
+          images: [], // existing images not editable here; uploads are local until saved
+        }));
+        setUnitsInitial(mapped);
+      } catch {}
+    };
+    fetchUnits();
+  }, [property.id]);
 
   const tabs = [
     { id: 'basic', name: 'Basic Info', icon: HomeIcon },
     { id: 'amenities', name: 'Amenities', icon: StarIcon },
     { id: 'images', name: 'Images', icon: PhotoIcon },
+    { id: 'units', name: 'Units', icon: HomeIcon },
   ];
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
@@ -130,6 +167,10 @@ export function PropertyEditForm({ property }: PropertyEditFormProps) {
         availableFrom: formData.availableFrom.trim() || undefined,
         description: formData.description.trim() || undefined,
         amenities: selectedAmenities,
+        // Coerce optional numeric/boolean fields
+        isMultiUnit: !!formData.isMultiUnit,
+        allowWholeRent: !!formData.allowWholeRent,
+        wholeRentPrice: formData.wholeRentPrice ? parseFloat(formData.wholeRentPrice) : undefined,
       };
 
       const response = await fetch(`/api/properties/${property.id}`, {
@@ -438,6 +479,49 @@ export function PropertyEditForm({ property }: PropertyEditFormProps) {
                     className="mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
                   />
                 </div>
+                {/* Multi-Unit Configuration */}
+                <div className="col-span-1 md:col-span-2 lg:col-span-3">
+                  <h4 className="text-md font-medium text-gray-900 mb-2">Rental Configuration</h4>
+                  <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                    <label className="inline-flex items-center space-x-2">
+                      <input
+                        type="checkbox"
+                        name="isMultiUnit"
+                        checked={formData.isMultiUnit}
+                        onChange={(e) => setFormData(prev => ({ ...prev, isMultiUnit: e.target.checked }))}
+                        className="h-4 w-4 text-blue-600 border-gray-300 rounded"
+                      />
+                      <span className="text-sm text-gray-700">This is a multi-unit property</span>
+                    </label>
+                    <label className="inline-flex items-center space-x-2">
+                      <input
+                        type="checkbox"
+                        name="allowWholeRent"
+                        checked={formData.allowWholeRent}
+                        onChange={(e) => setFormData(prev => ({ ...prev, allowWholeRent: e.target.checked }))}
+                        className="h-4 w-4 text-blue-600 border-gray-300 rounded"
+                      />
+                      <span className="text-sm text-gray-700">Allow renting entire property</span>
+                    </label>
+                    {formData.allowWholeRent && (
+                      <div>
+                        <label htmlFor="wholeRentPrice" className="block text-sm font-medium text-gray-700">
+                          Whole Rent Price ($)
+                        </label>
+                        <input
+                          type="number"
+                          id="wholeRentPrice"
+                          name="wholeRentPrice"
+                          value={formData.wholeRentPrice}
+                          onChange={handleInputChange}
+                          min="0"
+                          step="0.01"
+                          className="mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
+                        />
+                      </div>
+                    )}
+                  </div>
+                </div>
               </div>
             </div>
 
@@ -468,6 +552,7 @@ export function PropertyEditForm({ property }: PropertyEditFormProps) {
             <PropertyAmenitiesTab
               propertyId={property.id}
               selectedAmenities={selectedAmenities}
+            selectedAmenityNames={selectedAmenityNames}
               onAmenitiesChange={setSelectedAmenities}
             />
           </div>
@@ -481,6 +566,17 @@ export function PropertyEditForm({ property }: PropertyEditFormProps) {
               propertyId={property.id}
               images={images}
               onImagesChange={setImages}
+            />
+          </div>
+        )}
+
+        {/* Units Tab placeholder */}
+        {activeTab === 'units' && (
+          <div className="bg-white shadow rounded-lg p-6">
+            <UnitsTab
+              propertyId={property.id}
+              initialUnits={unitsInitial}
+              onUnitsChange={() => {}}
             />
           </div>
         )}

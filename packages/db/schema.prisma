@@ -222,6 +222,10 @@ model Property {
   rentalPrice      Decimal? @db.Decimal(10, 2)
   hasMultipleUnits Boolean  @default(false)
   totalUnits       Int      @default(1)
+  // New multi-unit & whole-rent fields (additive, backwards-compatible)
+  isMultiUnit    Boolean @default(false)
+  allowWholeRent Boolean @default(false)
+  wholeRentPrice Float?
 
   photos           String[]
   imageUrl         String?
@@ -284,6 +288,13 @@ model Unit {
   availableFrom DateTime?
   photos        String[]
   imageUrl      String?
+
+  // Additive fields for richer unit configuration
+  kitchen     Boolean @default(false)
+  balcony     Boolean @default(false)
+  rentAmount  Float?
+  amenities   Json?
+  // photos Json? is represented by photos string[] and object_documents externally
 
   status      UnitStatus @default(AVAILABLE)
   description String?    @db.Text
@@ -542,6 +553,7 @@ model ObjectDocument {
   objectId       String
   name           String
   url            String
+  fileUrl        String?  // Direct URL to file (alternative to url for different storage providers)
   mimeType       String
   size           Int?
   documentTypeId String?

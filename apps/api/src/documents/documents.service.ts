@@ -10,6 +10,7 @@ export class DocumentsService {
     objectId: string;
     name: string;
     url: string;
+    fileUrl?: string;
     mimeType: string;
     size?: number;
     documentTypeId?: string;
@@ -21,6 +22,7 @@ export class DocumentsService {
         objectId: data.objectId,
         name: data.name,
         url: data.url,
+        fileUrl: data.fileUrl,
         mimeType: data.mimeType,
         size: data.size,
         documentTypeId: data.documentTypeId,

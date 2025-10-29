@@ -203,6 +203,32 @@ export function AddLeaseModal({ property, isOpen, onClose, onSuccess, currentLea
 
   const [documents, setDocuments] = useState<DocumentFile[]>([]);
 
+  // Units for this property
+  const [units, setUnits] = useState<Array<{ id: string; name: string; status?: string; floor?: number | null; bedrooms?: number; bathrooms?: number; area?: number; price?: number }>>([]);
+  const [loadingUnits, setLoadingUnits] = useState(false);
+  const [unitId, setUnitId] = useState<string | undefined>(undefined);
+
+  // Load units when modal opens
+  useEffect(() => {
+    const loadUnits = async () => {
+      try {
+        setLoadingUnits(true);
+        const res = await fetch(`/api/properties/${property.id}/units`, { credentials: 'include' });
+        if (res.ok) {
+          const data = await res.json();
+          setUnits(Array.isArray(data) ? data : []);
+        } else {
+          setUnits([]);
+        }
+      } catch {
+        setUnits([]);
+      } finally {
+        setLoadingUnits(false);
+      }
+    };
+    if (isOpen && property?.id) loadUnits();
+  }, [isOpen, property?.id]);
+
   const addFixedFee = () => {
     setFixedFees([...fixedFees, { name: '', amount: 0 }]);
   };
@@ -401,13 +427,9 @@ export function AddLeaseModal({ property, isOpen, onClose, onSuccess, currentLea
 
     setIsSubmitting(true);
     try {
-      // Get the first available unit for this property
-      const response = await fetch(`/api/properties/${property.id}`);
-      const propertyData = await response.json();
-      
-      const unitId = propertyData.units?.[0]?.id;
+      // Require a unit selection for multi-unit properties
       if (!unitId) {
-        alert('No units available for this property');
+        alert('Please select a unit for this lease');
         setIsSubmitting(false);
         return;
       }
@@ -836,6 +858,33 @@ export function AddLeaseModal({ property, isOpen, onClose, onSuccess, currentLea
               </div>
 
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                {/* Unit selection */}
+                <div className="md:col-span-2">
+                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                    Unit *
+                  </label>
+                  <select
+                    value={unitId || ''}
+                    onChange={(e) => setUnitId(e.target.value || undefined)}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#5BA0A4] focus:border-transparent"
+                    required
+                  >
+                    <option value="">Select a unit</option>
+                    {units.map((u) => (
+                      <option key={u.id} value={u.id} disabled={u.status && u.status !== 'AVAILABLE'}>
+                        {u.name}
+                        {u.floor != null ? ` • floor ${u.floor}` : ''}
+                        {u.bedrooms != null && u.bathrooms != null ? ` • ${u.bedrooms}br/${u.bathrooms}wc` : ''}
+                        {u.area ? ` • ${u.area}m²` : ''}
+                        {u.price ? ` • $${Number(u.price).toLocaleString()}` : ''}
+                        {u.status && u.status !== 'AVAILABLE' ? ' (unavailable)' : ''}
+                      </option>
+                    ))}
+                  </select>
+                  {loadingUnits && (
+                    <p className="text-xs text-gray-500 mt-1">Loading units…</p>
+                  )}
+                </div>
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-1">
                     Monthly Rent *

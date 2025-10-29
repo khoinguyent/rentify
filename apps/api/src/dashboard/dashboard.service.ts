@@ -18,6 +18,21 @@ export class DashboardService {
   ) {}
 
   /**
+   * Get landlord profile by user ID
+   */
+  async getLandlordProfileByUserId(userId: string) {
+    const landlordProfile = await this.db.landlordProfile.findUnique({
+      where: { userId },
+    });
+
+    if (!landlordProfile) {
+      throw new NotFoundException('Landlord profile not found');
+    }
+
+    return landlordProfile;
+  }
+
+  /**
    * Verify that the user has access to the landlord's data
    */
   async verifyLandlordAccess(userId: string, landlordId: string) {

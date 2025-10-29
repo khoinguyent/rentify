@@ -19,7 +19,6 @@ RUN --mount=type=cache,id=pnpm,target=/root/.local/share/pnpm/store \
 # Development stage
 FROM base AS development
 COPY --from=dependencies /app/node_modules ./node_modules
-COPY --from=dependencies /app/apps/web/node_modules ./apps/web/node_modules
 COPY . .
 
 # Generate Prisma Client for development

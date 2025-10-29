@@ -40,8 +40,8 @@ export default function TenantMaintenancePage() {
   useEffect(() => {
     if (status === 'unauthenticated') {
       router.push('/auth/login');
-    } else if (status === 'authenticated' && session?.user?.id) {
-      setTenantId(session.user.id);
+    } else if (status === 'authenticated' && session?.user) {
+      setTenantId((session.user as any).id);
     }
   }, [status, router, session]);
 
