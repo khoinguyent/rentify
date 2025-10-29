@@ -1,4 +1,5 @@
 import { Injectable, NotFoundException, ForbiddenException } from '@nestjs/common';
+import { CacheService } from '../cache/cache.service';
 import { DatabaseService } from '../database/database.service';
 import { PropertiesService } from '../properties/properties.service';
 import { LeasesService } from '../leases/leases.service';
@@ -10,6 +11,7 @@ import { addDays, subMonths, startOfMonth, endOfMonth, format, differenceInDays 
 export class DashboardService {
   constructor(
     private readonly db: DatabaseService,
+    private readonly cache: CacheService,
     // Temporarily comment out service dependencies
     // private readonly propertiesService: PropertiesService,
     // private readonly leasesService: LeasesService,
@@ -64,6 +66,10 @@ export class DashboardService {
    * Get aggregated dashboard summary
    */
   async getDashboardSummary(landlordId: string) {
+    const cacheKey = this.cache.dashboardKey(landlordId);
+    const cached = await this.cache.get<any>(cacheKey);
+    if (cached) return cached;
+
     const [kpis, expiringLeases, vacantUnits, maintenanceSummary, revenue, recentActivity] = await Promise.all([
       this.getKPIs(landlordId),
       this.getExpiringLeases(landlordId),
@@ -73,7 +79,7 @@ export class DashboardService {
       this.getRecentActivity(landlordId),
     ]);
 
-    return {
+    const result = {
       kpis,
       expiringLeases,
       vacantUnits,
@@ -81,6 +87,9 @@ export class DashboardService {
       revenue,
       recentActivity,
     };
+
+    await this.cache.set(cacheKey, result, 120);
+    return result;
   }
 
   /**

@@ -1,5 +1,6 @@
 import { Injectable, NotFoundException, ForbiddenException } from '@nestjs/common';
 import { DatabaseService } from '../database/database.service';
+import { CacheService } from '../cache/cache.service';
 import { StorageService } from '../storage/storage.service';
 import { CreatePropertyDto, UpdatePropertyDto } from './dto';
 
@@ -8,6 +9,7 @@ export class PropertiesService {
   constructor(
     private readonly db: DatabaseService,
     private readonly storageService: StorageService,
+    private readonly cache: CacheService,
   ) {}
 
   async create(createPropertyDto: CreatePropertyDto, userId: string) {
@@ -95,6 +97,10 @@ export class PropertiesService {
   }
 
   async findOne(id: string) {
+    const cacheKey = this.cache.propertyKey(id);
+    const cached = await this.cache.get<any>(cacheKey);
+    if (cached) return cached;
+
     const property = await this.db.property.findUnique({
       where: { id },
       include: {
@@ -144,6 +150,19 @@ export class PropertiesService {
 
     // Transform amenities to flat structure and include activeTenant and activeLease if there's an active lease
     const activeLease = property.leases?.[0];
+
+    // If there is an active lease, fetch attached documents for it
+    let leaseDocuments: Array<{ id: string; name: string; url?: string | null; fileUrl?: string | null; mimeType?: string | null; size?: number | null }> = [];
+    if (activeLease) {
+      try {
+        leaseDocuments = await this.db.objectDocument.findMany({
+          where: { objectType: 'Lease', objectId: activeLease.id },
+          orderBy: { createdAt: 'desc' },
+          select: { id: true, name: true, url: true, mimeType: true, size: true },
+        });
+      } catch {}
+    }
+
     const transformedProperty = {
       ...property,
       amenities: property.amenities?.map(pa => ({
@@ -164,7 +183,8 @@ export class PropertiesService {
         startDate: activeLease.startDate,
         endDate: activeLease.endDate,
         rentAmount: parseFloat(activeLease.rentAmount.toString()),
-        documentUrl: activeLease.documentUrl,
+        documentUrl: activeLease.documentUrl || leaseDocuments[0]?.url || null,
+        documents: leaseDocuments,
         status: activeLease.status,
         tenantInfo: activeLease.tenant ? {
           firstName: activeLease.tenant.fullName?.split(' ')[0] || '',
@@ -183,6 +203,8 @@ export class PropertiesService {
     console.log(`Property ${id} amenities count:`, property.amenities?.length || 0);
     console.log(`Property ${id} transformed amenities:`, transformedProperty.amenities);
 
+    // Cache it
+    await this.cache.set(cacheKey, transformedProperty);
     return transformedProperty;
   }
 
@@ -197,54 +219,47 @@ export class PropertiesService {
       propertyData.availableFrom = new Date(propertyData.availableFrom).toISOString();
     }
 
-    // Update property data
-    const updatedProperty = await this.db.property.update({
-      where: { id },
-      data: propertyData,
-      include: {
-        landlord: true,
-        units: true,
-        amenities: {
-          include: {
-            amenity: true,
-          },
-        },
-      },
-    });
-
-    // Handle amenities update if provided
+    // Transactionally update property and amenities (if provided)
     if (amenities !== undefined) {
-      // Remove existing amenities
-      await this.db.propertyAmenity.deleteMany({
-        where: { propertyId: id },
+      await this.db.$transaction(async (tx) => {
+        // Update core property fields first
+        await tx.property.update({ where: { id }, data: propertyData });
+
+        // Reset amenities
+        await tx.propertyAmenity.deleteMany({ where: { propertyId: id } });
+
+        // Insert new amenities, if any
+        if (amenities.length > 0) {
+          await tx.propertyAmenity.createMany({
+            data: amenities.map((amenityId) => ({ propertyId: id, amenityId })),
+            skipDuplicates: true,
+          });
+        }
       });
 
-      // Add new amenities
-      if (amenities.length > 0) {
-        await this.db.propertyAmenity.createMany({
-          data: amenities.map(amenityId => ({
-            propertyId: id,
-            amenityId,
-          })),
-        });
-      }
+      // Invalidate cache
+      await this.cache.del(this.cache.propertyKey(id));
 
-      // Return updated property with amenities
       return this.db.property.findUnique({
         where: { id },
         include: {
           landlord: true,
           units: true,
-          amenities: {
-            include: {
-              amenity: true,
-            },
-          },
+          amenities: { include: { amenity: true } },
         },
       });
     }
 
-    return updatedProperty;
+    // No amenities change: just update property fields
+    return this.db.property.update({
+      where: { id },
+      data: propertyData,
+      include: {
+        landlord: true,
+        units: true,
+        amenities: { include: { amenity: true } },
+      },
+    });
   }
 
   async remove(id: string) {
@@ -289,11 +304,14 @@ export class PropertiesService {
    * Get all available amenities
    */
   async getAmenities() {
-    return this.db.amenity.findMany({
-      orderBy: {
-        name: 'asc',
-      },
+    const key = 'amenities:all';
+    const cached = await this.cache.get<any[]>(key);
+    if (cached) return cached;
+    const data = await this.db.amenity.findMany({
+      orderBy: { name: 'asc' },
     });
+    await this.cache.set(key, data, 600);
+    return data;
   }
 
   /**

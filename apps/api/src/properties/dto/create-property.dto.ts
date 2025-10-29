@@ -73,6 +73,11 @@ export class CreatePropertyDto {
   @IsNumber()
   longitude?: number;
 
+  @ApiProperty({ example: 'google', required: false })
+  @IsOptional()
+  @IsString()
+  mapProvider?: string;
+
   @ApiProperty({ example: 'APARTMENT', enum: PropertyType })
   @IsEnum(PropertyType)
   type: PropertyType;

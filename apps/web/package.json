@@ -39,7 +39,9 @@
     "swr": "^2.3.6",
     "tailwind-merge": "^2.2.1",
     "tailwindcss-animate": "^1.0.7",
-    "zod": "^3.22.4"
+    "zod": "^3.22.4",
+    "@react-google-maps/api": "^2.20.6",
+    "use-places-autocomplete": "^4.0.1"
   },
   "devDependencies": {
     "@types/bcryptjs": "^2.4.6",

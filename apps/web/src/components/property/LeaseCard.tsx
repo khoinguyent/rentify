@@ -8,6 +8,7 @@ interface LeaseCardProps {
     endDate: string;
     rentAmount: number;
     documentUrl?: string | null;
+    documents?: Array<{ id: string; name: string; url?: string | null; fileUrl?: string | null; mimeType?: string | null; size?: number | null }>; 
     status: string;
     tenantInfo?: {
       firstName: string;
@@ -43,9 +44,18 @@ export function LeaseCard({ lease, onAddLease, onAddNewContract }: LeaseCardProp
     return `$${amount.toLocaleString()}/month`;
   };
 
+  const getPrimaryDocUrl = (): string | null => {
+    const direct = lease?.documentUrl && String(lease.documentUrl).trim().length > 0 ? lease!.documentUrl! : null;
+    if (direct) return direct;
+    const firstDoc = lease?.documents && lease.documents.length > 0 ? lease.documents[0] : undefined;
+    const best = firstDoc?.fileUrl || firstDoc?.url || null;
+    return best || null;
+  };
+
   const openPdf = () => {
-    if (lease.documentUrl) {
-      window.open(lease.documentUrl, '_blank');
+    const href = getPrimaryDocUrl();
+    if (href) {
+      window.open(href, '_blank');
     }
   };
 
@@ -112,7 +122,7 @@ export function LeaseCard({ lease, onAddLease, onAddNewContract }: LeaseCardProp
               <FileText size={20} className="text-[#5BA0A4]" />
               <div className="flex-1">
                 <p className="text-xs text-[#64748B] uppercase tracking-wide font-semibold mb-2">Lease Documents</p>
-                {lease.documentUrl ? (
+                {getPrimaryDocUrl() ? (
                   <button
                     onClick={openPdf}
                     className="inline-flex items-center gap-2 px-4 py-2 bg-[#5BA0A4] text-white rounded-lg hover:bg-[#4a8e91] transition-colors text-sm font-medium"

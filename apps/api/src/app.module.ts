@@ -13,6 +13,7 @@ import { DashboardModule } from './dashboard/dashboard.module';
 import { MaintenanceModule } from './maintenance/maintenance.module';
 import { StorageModule } from './storage/storage.module';
 import { DocumentsModule } from './documents/documents.module';
+import { CacheService } from './cache/cache.service';
 import { TenantsModule } from './tenants/tenants.module';
 
 @Module({
@@ -35,7 +36,7 @@ import { TenantsModule } from './tenants/tenants.module';
     TenantsModule,
   ],
   controllers: [AppController],
-  providers: [AppService],
+  providers: [AppService, CacheService],
 })
 export class AppModule {}
 

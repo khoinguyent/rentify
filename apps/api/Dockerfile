@@ -50,6 +50,7 @@ WORKDIR /app/standalone
 # ✅ Copy built dist, Prisma schema, and Prisma engine binaries
 COPY --from=builder /app/apps/api/dist ./dist
 COPY --from=builder /app/packages/db/prisma ./prisma
+COPY --from=builder /app/packages/db/schema.prisma ./prisma/schema.prisma
 COPY --from=builder /app/node_modules/.pnpm/@prisma+client@5.22.0_prisma@5.22.0/node_modules/.prisma ./node_modules/.prisma
 
 # Verify everything critical

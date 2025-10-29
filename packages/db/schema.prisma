@@ -206,6 +206,7 @@ model Property {
   country   String  @default("US")
   latitude  Float?
   longitude Float?
+  mapProvider String? @default("google")
 
   type          PropertyType
   furnishing    Furnishing?

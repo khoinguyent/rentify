@@ -62,6 +62,7 @@ export interface Property {
     endDate: string;
     rentAmount: number;
     documentUrl?: string | null;
+    documents?: Array<{ id: string; name: string; url?: string | null; fileUrl?: string | null; mimeType?: string | null; size?: number | null }>;
     status: string;
     tenantInfo?: {
       firstName: string;

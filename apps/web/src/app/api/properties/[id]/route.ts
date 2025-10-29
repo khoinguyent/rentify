@@ -73,6 +73,7 @@ export async function PATCH(
     if (copy.country !== undefined) payload.country = copy.country || undefined;
     if (copy.latitude !== undefined) payload.latitude = copy.latitude === '' ? undefined : Number(copy.latitude);
     if (copy.longitude !== undefined) payload.longitude = copy.longitude === '' ? undefined : Number(copy.longitude);
+    if (copy.mapProvider !== undefined) payload.mapProvider = String(copy.mapProvider);
     if (copy.rentalPrice !== undefined) payload.rentalPrice = copy.rentalPrice === '' ? undefined : Number(copy.rentalPrice);
     if (copy.furnishing !== undefined) payload.furnishing = copy.furnishing || undefined;
     if (copy.numBedrooms !== undefined) payload.numBedrooms = copy.numBedrooms === '' ? undefined : Number(copy.numBedrooms);

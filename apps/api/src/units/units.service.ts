@@ -1,10 +1,11 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
 import { DatabaseService } from '../database/database.service';
+import { CacheService } from '../cache/cache.service';
 import { CreateUnitDto, UpdateUnitDto } from './dto';
 
 @Injectable()
 export class UnitsService {
-  constructor(private readonly db: DatabaseService) {}
+  constructor(private readonly db: DatabaseService, private readonly cache: CacheService) {}
 
   async create(createUnitDto: CreateUnitDto) {
     return this.db.unit.create({
@@ -17,6 +18,21 @@ export class UnitsService {
 
   async findAll(propertyId?: string) {
     const where = propertyId ? { propertyId } : {};
+
+    // Cache by propertyId only (when provided)
+    if (propertyId) {
+      const key = `units:${propertyId}`;
+      const cached = await this.cache.get<any[]>(key);
+      if (cached) return cached;
+      const data = await this.db.unit.findMany({
+        where,
+        include: {
+          property: true,
+        },
+      });
+      await this.cache.set(key, data, 120);
+      return data;
+    }
 
     return this.db.unit.findMany({
       where,
@@ -68,13 +84,16 @@ export class UnitsService {
   async update(id: string, updateUnitDto: UpdateUnitDto) {
     await this.findOne(id);
 
-    return this.db.unit.update({
+    const updated = await this.db.unit.update({
       where: { id },
       data: updateUnitDto,
       include: {
         property: true,
       },
     });
+    // Invalidate property units cache
+    try { await this.cache.del(`units:${updated.propertyId}`); } catch {}
+    return updated;
   }
 
   async remove(id: string) {

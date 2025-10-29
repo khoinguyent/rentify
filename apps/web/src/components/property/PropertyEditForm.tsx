@@ -12,6 +12,7 @@ import {
 import PropertyAmenitiesTab from './PropertyAmenitiesTab';
 import PropertyImagesTab from './PropertyImagesTab';
 import UnitsTab from './UnitsTab';
+import PropertyLocationEditor from './PropertyLocationEditor';
 
 interface Property {
   id: string;
@@ -32,7 +33,7 @@ interface Property {
   parkingSpaces?: number;
   availableFrom?: string;
   description?: string;
-  amenities?: Array<{ amenity: { id: string; name: string } }>;
+  amenities?: Array<{ amenity?: { id: string; name: string }; id?: string; name?: string }>;
   images?: Array<{
     id: string;
     fileName: string;
@@ -83,7 +84,7 @@ export function PropertyEditForm({ property }: PropertyEditFormProps) {
   const [selectedAmenities, setSelectedAmenities] = useState<string[]>(() => {
     console.log('PropertyEditForm - property.amenities:', property.amenities);
     // Handle both nested and flat structures for backward compatibility
-    const amenityIds = property.amenities?.map(a => a.amenity?.id || a.id) || [];
+    const amenityIds = (property.amenities?.map(a => a.amenity?.id || a.id) || []).filter(Boolean) as string[];
     console.log('PropertyEditForm - selectedAmenities initialized with:', amenityIds);
     return amenityIds;
   });
@@ -133,6 +134,15 @@ export function PropertyEditForm({ property }: PropertyEditFormProps) {
     setFormData(prev => ({
       ...prev,
       [name]: value,
+    }));
+  };
+
+  const handleLocationChange = (loc: { address: string; latitude: number; longitude: number }) => {
+    setFormData(prev => ({
+      ...prev,
+      address: loc.address,
+      latitude: String(loc.latitude),
+      longitude: String(loc.longitude),
     }));
   };
 
@@ -304,6 +314,17 @@ export function PropertyEditForm({ property }: PropertyEditFormProps) {
                     onChange={handleInputChange}
                     required
                     className="mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
+                  />
+                </div>
+                <div>
+                  <PropertyLocationEditor
+                    property={{
+                      address: formData.address,
+                      latitude: formData.latitude ? parseFloat(formData.latitude) : undefined,
+                      longitude: formData.longitude ? parseFloat(formData.longitude) : undefined,
+                    }}
+                    editable
+                    onChange={handleLocationChange}
                   />
                 </div>
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-4">

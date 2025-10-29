@@ -1,5 +1,6 @@
 import React from 'react';
 import { MapPin, Navigation } from 'lucide-react';
+import PropertyLocationEditor from './PropertyLocationEditor';
 
 interface Property {
   address: string;
@@ -21,11 +22,6 @@ export function AddressMapSection({ property }: AddressMapSectionProps) {
     if (property.state) parts.push(property.state);
     if (property.country) parts.push(property.country);
     return parts.join(', ');
-  };
-
-  const getGoogleMapsUrl = () => {
-    const address = encodeURIComponent(formatAddress());
-    return `https://www.google.com/maps/embed/v1/place?key=${process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY}&q=${address}`;
   };
 
   const getGoogleMapsLink = () => {
@@ -73,15 +69,15 @@ export function AddressMapSection({ property }: AddressMapSectionProps) {
           
           {property.latitude && property.longitude ? (
             <div className="relative h-64 rounded-lg overflow-hidden">
-              <iframe
-                src={getGoogleMapsUrl()}
-                width="100%"
-                height="100%"
-                style={{ border: 0 }}
-                allowFullScreen
-                loading="lazy"
-                referrerPolicy="no-referrer-when-downgrade"
-                className="rounded-lg"
+              <PropertyLocationEditor
+                property={{
+                  address: formatAddress(),
+                  latitude: property.latitude,
+                  longitude: property.longitude,
+                }}
+                editable={false}
+                onChange={() => {}}
+                height={256}
               />
             </div>
           ) : (
