@@ -99,5 +99,22 @@ export class CreateUnitDto {
   @IsOptional()
   @IsString()
   description?: string;
+
+  // Additional fields used by web app (persisted to Unit model)
+  @ApiProperty({ example: true, required: false })
+  @IsOptional()
+  @IsBoolean()
+  kitchen?: boolean;
+
+  @ApiProperty({ example: true, required: false })
+  @IsOptional()
+  @IsBoolean()
+  balcony?: boolean;
+
+  @ApiProperty({ example: ['amenity-id-1', 'amenity-id-2'], required: false })
+  @IsOptional()
+  @IsArray()
+  @IsString({ each: true })
+  amenities?: string[];
 }
 

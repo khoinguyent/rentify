@@ -139,6 +139,23 @@ export class CreatePropertyDto {
   @Min(0)
   rentalPrice?: number;
 
+  // Multi-unit configuration
+  @ApiProperty({ example: false, required: false, description: 'If true, property contains multiple units' })
+  @IsOptional()
+  @IsBoolean()
+  isMultiUnit?: boolean;
+
+  @ApiProperty({ example: false, required: false, description: 'If true, allow renting the entire property' })
+  @IsOptional()
+  @IsBoolean()
+  allowWholeRent?: boolean;
+
+  @ApiProperty({ example: 5000, required: false, description: 'Monthly price when renting entire property' })
+  @IsOptional()
+  @IsNumber()
+  @Min(0)
+  wholeRentPrice?: number;
+
   @ApiProperty({ example: false, required: false })
   @IsOptional()
   @IsBoolean()

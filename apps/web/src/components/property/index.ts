@@ -17,4 +17,5 @@ export { TenantContactCard } from './TenantContactCard';
 export { LeaseCard } from './LeaseCard';
 export { MobileContactBar } from './MobileContactBar';
 export { AddLeaseModal } from './AddLeaseModal';
+export { UnitGridSection } from './UnitGridSection';
 

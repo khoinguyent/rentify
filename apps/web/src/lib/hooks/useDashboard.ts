@@ -5,19 +5,28 @@ const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001/a
 
 // Fetcher function for SWR
 const fetcher = async (url: string) => {
+  // Get JWT token from session
+  const sessionResponse = await fetch('/api/auth/session');
+  const session = await sessionResponse.json();
+  const token = (session as any)?.nestjsToken;
+
   const headers: HeadersInit = {
     'Content-Type': 'application/json',
   };
-  
-  // For now, skip authentication since we're using session-based auth in NextAuth
-  // TODO: Add JWT token from API login or use NextAuth token
-  // In production, get token from localStorage or make a login API call first
+
+  // Add JWT token to headers if available
+  if (token) {
+    headers['Authorization'] = `Bearer ${token}`;
+  }
   
   const response = await fetch(url, {
     headers,
+    credentials: 'include',
   });
 
   if (!response.ok) {
+    const errorText = await response.text();
+    console.error('API Error:', response.status, errorText);
     throw new Error('Failed to fetch data');
   }
 

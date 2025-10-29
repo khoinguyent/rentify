@@ -31,12 +31,30 @@ export default function DashboardPage() {
     }
   }, [status, session, router]);
 
-  // For now, we'll use the seeded landlord ID
-  // In a real app, this would come from the user's profile or session
+  // Fetch landlord ID from API (only for LANDLORD/ADMIN)
   useEffect(() => {
-    if (session?.user) {
-      // Use the seeded landlord ID from the database
-      setLandlordId('cmh1tt63o00031fzlbvpu8lik');
+    const fetchLandlordId = async () => {
+      try {
+        const response = await fetch('/api/dashboard/my-profile', {
+          credentials: 'include',
+        });
+        if (response.ok) {
+          const data = await response.json();
+          setLandlordId(data.landlordId);
+        } else {
+          // Silently ignore 401/404; user may not be a landlord yet
+          if (response.status !== 401 && response.status !== 404) {
+            console.error('Failed to fetch landlord ID:', response.status);
+          }
+        }
+      } catch (error) {
+        console.error('Error fetching landlord ID:', error);
+      }
+    };
+
+    const role = (session?.user as any)?.role;
+    if (role === 'LANDLORD' || role === 'ADMIN') {
+      fetchLandlordId();
     }
   }, [session]);
 

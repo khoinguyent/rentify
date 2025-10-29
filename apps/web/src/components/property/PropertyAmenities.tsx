@@ -1,4 +1,5 @@
 import React from 'react';
+import { AMENITIES_FALLBACK } from './amenities-fallback';
 import { 
   Wifi, 
   Car, 
@@ -78,7 +79,7 @@ export function PropertyAmenities({ amenities }: PropertyAmenitiesProps) {
   console.log('PropertyAmenities - received amenities:', amenities);
   
   // Handle both nested and flat structures
-  const flatAmenities = amenities?.map(amenity => {
+  const flatAmenities = (amenities || []).map((amenity: any) => {
     // If it's nested structure: { amenity: { id, name, ... } }
     if (amenity.amenity) {
       return {
@@ -87,6 +88,16 @@ export function PropertyAmenities({ amenities }: PropertyAmenitiesProps) {
         icon: amenity.amenity.icon,
         description: amenity.amenity.description,
       };
+    }
+    // If it's just an id string
+    if (typeof amenity === 'string') {
+      const f = AMENITIES_FALLBACK.find(a => a.id === amenity);
+      return f ? { id: f.id, name: f.name, icon: f.icon, description: f.description } : { id: amenity, name: amenity };
+    }
+    // If it's an object with only id
+    if (amenity && !amenity.name && amenity.id) {
+      const f = AMENITIES_FALLBACK.find(a => a.id === amenity.id) || AMENITIES_FALLBACK.find(a => a.name === amenity.id);
+      return f ? { id: amenity.id, name: f.name, icon: f.icon, description: f.description } : amenity;
     }
     // If it's flat structure: { id, name, ... }
     return amenity;

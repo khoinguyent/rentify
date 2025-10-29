@@ -82,6 +82,7 @@ export class DocumentsController {
       objectId: string;
       name: string;
       url: string;
+      fileUrl?: string;
       mimeType: string;
       size?: number;
       documentTypeId?: string;
@@ -92,6 +93,7 @@ export class DocumentsController {
       objectType: body.objectType,
       objectId: body.objectId,
       url: body.url,
+      fileUrl: body.fileUrl,
       name: body.name,
       mimeType: body.mimeType,
       size: body.size,

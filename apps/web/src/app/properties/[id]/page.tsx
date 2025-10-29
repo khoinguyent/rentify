@@ -12,6 +12,7 @@ import { TenantContactCard } from '@/components/property/TenantContactCard';
 import { LeaseCard } from '@/components/property/LeaseCard';
 import { MobileContactBar } from '@/components/property/MobileContactBar';
 import { AddLeaseModal } from '@/components/property/AddLeaseModal';
+import { UnitGridSection } from '@/components/property/UnitGridSection';
 import { getPropertyById, Property } from '@/lib/api';
 
 export default function PropertyDetailsPage() {
@@ -168,6 +169,11 @@ export default function PropertyDetailsPage() {
                 {/* Property Header Block */}
                 <div className="bg-gradient-to-br from-[#E9F5F6] to-[#F8FBFB] rounded-2xl shadow-md px-8 py-10 animate-in slide-in-from-top duration-700">
                   <PropertyHeader property={property} />
+                </div>
+
+                {/* Unit Grid Section */}
+                <div className="bg-white rounded-2xl shadow-md px-8 py-8 animate-in slide-in-from-bottom duration-700">
+                  <UnitGridSection propertyId={propertyId} />
                 </div>
 
                 {/* Location Block */}

@@ -6,6 +6,7 @@ import { useEffect, useState } from 'react';
 import { Sidebar } from '@/components/Sidebar';
 import { PropertyEditForm } from '@/components/property/PropertyEditForm';
 import { getPropertyById, Property } from '@/lib/api';
+import Link from 'next/link';
 
 export default function EditPropertyPage() {
   const { data: session, status } = useSession();
@@ -15,6 +16,7 @@ export default function EditPropertyPage() {
   
   const [property, setProperty] = useState<Property | null>(null);
   const [loading, setLoading] = useState(true);
+  // Unit inline edit/add removed from property edit view per requirements
 
   useEffect(() => {
     if (status === 'unauthenticated') {
@@ -82,7 +84,7 @@ export default function EditPropertyPage() {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50 flex">
+    <div className="min-h-screen bg-gradient-to-br from-[#E9F5F6] to-[#F8FBFB] flex">
       {/* Sidebar */}
       <Sidebar />
 
@@ -109,6 +111,8 @@ export default function EditPropertyPage() {
               <p className="text-gray-600 mt-1">Update property information</p>
             </div>
             <PropertyEditForm property={property} />
+
+            {/* Units management removed from this view */}
           </div>
         </main>
       </div>

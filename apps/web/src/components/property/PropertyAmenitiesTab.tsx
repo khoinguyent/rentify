@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
+import { AMENITIES_FALLBACK } from './amenities-fallback';
 import { CheckIcon } from '@heroicons/react/24/solid';
 
 interface Amenity {
@@ -13,12 +14,14 @@ interface Amenity {
 interface PropertyAmenitiesTabProps {
   propertyId: string;
   selectedAmenities: string[];
+  selectedAmenityNames?: string[]; // allow preselection by name when IDs aren’t available
   onAmenitiesChange: (amenityIds: string[]) => void;
 }
 
 export default function PropertyAmenitiesTab({
   propertyId,
   selectedAmenities,
+  selectedAmenityNames,
   onAmenitiesChange,
 }: PropertyAmenitiesTabProps) {
   const [amenities, setAmenities] = useState<Amenity[]>([]);
@@ -39,13 +42,29 @@ export default function PropertyAmenitiesTab({
         throw new Error('Failed to fetch amenities');
       }
       const data = await response.json();
-      setAmenities(data);
+      if (Array.isArray(data) && data.length > 0) {
+        setAmenities(data);
+      } else {
+        setAmenities(AMENITIES_FALLBACK);
+      }
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Failed to fetch amenities');
     } finally {
       setLoading(false);
     }
   };
+
+  // When we have names but not ids (fallback case), preselect by names once amenities loaded
+  useEffect(() => {
+    if (amenities.length > 0 && selectedAmenityNames && selectedAmenities.length === 0) {
+      const byName = amenities
+        .filter((a) => selectedAmenityNames.includes(a.name))
+        .map((a) => a.id);
+      if (byName.length > 0) {
+        onAmenitiesChange(byName);
+      }
+    }
+  }, [amenities, selectedAmenityNames, selectedAmenities, onAmenitiesChange]);
 
   const handleAmenityToggle = (amenityId: string) => {
     const isSelected = selectedAmenities.includes(amenityId);

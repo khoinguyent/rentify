@@ -43,7 +43,26 @@ export class UnitsService {
       throw new NotFoundException('Unit not found');
     }
 
-    return unit;
+    // Fetch unit images from object_documents
+    const documents = await this.db.objectDocument.findMany({
+      where: {
+        objectType: 'Unit',
+        objectId: id,
+      },
+      orderBy: {
+        createdAt: 'asc',
+      },
+    });
+
+    // Add images array to the unit object
+    return {
+      ...unit,
+      images: documents.map(doc => ({
+        id: doc.id,
+        url: doc.url,
+        fileName: doc.name,
+      })),
+    };
   }
 
   async update(id: string, updateUnitDto: UpdateUnitDto) {
